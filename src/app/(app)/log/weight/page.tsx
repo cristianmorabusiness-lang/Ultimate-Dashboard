@@ -62,9 +62,9 @@ export default function LogWeightPage() {
   const chartData = entries.map((e) => ({ logged_date: e.logged_date, weight_kg: e.weight_kg }))
 
   return (
-    <div className="p-6 max-w-2xl mx-auto space-y-5">
+    <div className="p-4 md:p-6 max-w-2xl mx-auto space-y-4 md:space-y-5">
       <div>
-        <h1 className="font-display text-2xl font-bold tracking-tight" style={{ color: '#ede9fe' }}>
+        <h1 className="font-display text-xl md:text-2xl font-bold tracking-tight" style={{ color: '#ede9fe' }}>
           Log Peso
         </h1>
         <p className="text-sm mt-0.5 capitalize" style={{ color: '#8b7faa' }}>{todayLabel}</p>
@@ -131,13 +131,14 @@ export default function LogWeightPage() {
           <div className="px-5 py-3" style={{ borderBottom: '1px solid rgba(139,92,246,0.12)' }}>
             <p className="section-label">Storico</p>
           </div>
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+        <table className="w-full text-sm min-w-[360px]">
             <thead>
               <tr style={{ borderBottom: '1px solid rgba(139,92,246,0.08)' }}>
-                <th className="text-left px-5 py-2.5 text-xs font-medium" style={{ color: '#5e5479' }}>Data</th>
-                <th className="text-right px-5 py-2.5 text-xs font-medium" style={{ color: '#5e5479' }}>Peso</th>
-                <th className="text-right px-5 py-2.5 text-xs font-medium" style={{ color: '#5e5479' }}>% Grasso</th>
-                <th className="text-left px-5 py-2.5 text-xs font-medium" style={{ color: '#5e5479' }}>Nota</th>
+                <th className="text-left px-4 md:px-5 py-2.5 text-xs font-medium" style={{ color: '#5e5479' }}>Data</th>
+                <th className="text-right px-4 md:px-5 py-2.5 text-xs font-medium" style={{ color: '#5e5479' }}>Peso</th>
+                <th className="text-right px-4 md:px-5 py-2.5 text-xs font-medium" style={{ color: '#5e5479' }}>% Grasso</th>
+                <th className="text-left px-4 md:px-5 py-2.5 text-xs font-medium" style={{ color: '#5e5479' }}>Nota</th>
               </tr>
             </thead>
             <tbody>
@@ -145,16 +146,17 @@ export default function LogWeightPage() {
                 <tr key={e.id}
                   style={{ borderBottom: idx < Math.min(entries.length, 14) - 1 ? '1px solid rgba(139,92,246,0.06)' : undefined }}
                   className="hover:bg-violet-500/[0.03] transition-colors">
-                  <td className="px-5 py-3 font-mono text-xs" style={{ color: '#8b7faa' }}>{e.logged_date}</td>
-                  <td className="px-5 py-3 text-right font-mono font-semibold" style={{ color: '#c4b5fd' }}>{e.weight_kg} kg</td>
-                  <td className="px-5 py-3 text-right font-mono text-xs" style={{ color: '#8b7faa' }}>
+                  <td className="px-4 md:px-5 py-3 font-mono text-xs" style={{ color: '#8b7faa' }}>{e.logged_date}</td>
+                  <td className="px-4 md:px-5 py-3 text-right font-mono font-semibold" style={{ color: '#c4b5fd' }}>{e.weight_kg} kg</td>
+                  <td className="px-4 md:px-5 py-3 text-right font-mono text-xs" style={{ color: '#8b7faa' }}>
                     {e.body_fat_pct != null ? `${e.body_fat_pct}%` : '—'}
                   </td>
-                  <td className="px-5 py-3 text-xs" style={{ color: '#5e5479' }}>{e.note ?? ''}</td>
+                  <td className="px-4 md:px-5 py-3 text-xs" style={{ color: '#5e5479' }}>{e.note ?? ''}</td>
                 </tr>
               ))}
             </tbody>
           </table>
+        </div>
         </div>
       )}
 

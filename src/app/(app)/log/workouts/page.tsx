@@ -189,9 +189,9 @@ export default function LogWorkoutsPage() {
   const activeTemplateExercises = activeW?.title ? TORSO_LIMBS_PROGRAM[activeW.title as TorsoLimbsDay] ?? [] : []
 
   return (
-    <div className="p-6 max-w-3xl mx-auto space-y-5">
+    <div className="p-4 md:p-6 max-w-3xl mx-auto space-y-4 md:space-y-5">
       <div>
-        <h1 className="font-display text-2xl font-bold tracking-tight" style={{ color: '#f1eeff' }}>Workout</h1>
+        <h1 className="font-display text-xl md:text-2xl font-bold tracking-tight" style={{ color: '#f1eeff' }}>Workout</h1>
         <p className="text-sm mt-0.5" style={{ color: '#6b5f8a' }}>{today}</p>
       </div>
 
@@ -389,8 +389,8 @@ export default function LogWorkoutsPage() {
 
           {/* Logged sets */}
           {activeW.sets.length > 0 && !isActiveTemplate && (
-            <div className="rounded-xl overflow-hidden" style={{ border: '1px solid rgba(109,40,217,0.15)' }}>
-              <table className="w-full text-sm">
+            <div className="rounded-xl overflow-hidden overflow-x-auto" style={{ border: '1px solid rgba(109,40,217,0.15)' }}>
+              <table className="w-full text-sm min-w-[340px]">
                 <thead>
                   <tr style={{ borderBottom: '1px solid rgba(109,40,217,0.15)' }}>
                     {['Esercizio', 'Serie', 'Reps', 'kg', 'RPE'].map((h) => (

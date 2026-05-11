@@ -77,9 +77,9 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="p-6 max-w-2xl mx-auto space-y-5">
+    <div className="p-4 md:p-6 max-w-2xl mx-auto space-y-4 md:space-y-5">
       <div>
-        <h1 className="font-display text-2xl font-bold tracking-tight" style={{ color: '#ede9fe' }}>Profilo</h1>
+        <h1 className="font-display text-xl md:text-2xl font-bold tracking-tight" style={{ color: '#ede9fe' }}>Profilo</h1>
         <p className="text-sm mt-0.5" style={{ color: '#8b7faa' }}>Dati biometrici e obiettivi di allenamento</p>
       </div>
 

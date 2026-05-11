@@ -161,7 +161,7 @@ export function WhoopRings({ whoop }: Props) {
       </div>
 
       {/* Primary stats */}
-      <div className="grid grid-cols-4 gap-2">
+      <div className="grid grid-cols-4 gap-1.5 md:gap-2">
         <Chip label="HRV" value={whoop.hrv_rmssd_ms?.toFixed(1) ?? null} unit="ms" color="#c4b5fd" />
         <Chip label="RHR" value={whoop.resting_hr_bpm} unit="bpm" color="#93c5fd" />
         <Chip label="Sonno" value={sleepH} unit="h" color="#a78bfa" />
@@ -169,7 +169,7 @@ export function WhoopRings({ whoop }: Props) {
       </div>
 
       {/* Secondary metrics */}
-      <div className="grid grid-cols-4 gap-2">
+      <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5 md:gap-2">
         {extra.spo2 != null && <Chip label="SpO2" value={extra.spo2} unit="%" color="#6ee7b7" />}
         {extra.skinTemp != null && <Chip label="Temp Cute" value={extra.skinTemp} unit="°C" color="#fca5a5" />}
         {extra.respiratory != null && <Chip label="Respiraz." value={extra.respiratory} unit="/min" color="#93c5fd" />}

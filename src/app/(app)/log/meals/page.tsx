@@ -139,14 +139,14 @@ export default function LogMealsPage() {
   const previewFat = selected ? Math.round(selected.fat_100g * parseFloat(quantity || '0') / 100 * 10) / 10 : 0
 
   return (
-    <div className="p-6 max-w-3xl mx-auto space-y-5">
+    <div className="p-4 md:p-6 max-w-3xl mx-auto space-y-4 md:space-y-5">
       <div>
-        <h1 className="font-display text-2xl font-bold tracking-tight" style={{ color: '#f1eeff' }}>Pasti</h1>
+        <h1 className="font-display text-xl md:text-2xl font-bold tracking-tight" style={{ color: '#f1eeff' }}>Pasti</h1>
         <p className="text-sm mt-0.5" style={{ color: '#6b5f8a' }}>{today}</p>
       </div>
 
       {/* Daily totals */}
-      <div className="card p-4 grid grid-cols-4 gap-3 text-center">
+      <div className="card p-3 md:p-4 grid grid-cols-2 sm:grid-cols-4 gap-2 md:gap-3 text-center">
         {[
           { label: 'Calorie', value: Math.round(totals.kcal), unit: 'kcal', color: '#a78bfa' },
           { label: 'Proteine', value: Math.round(totals.protein_g), unit: 'g', color: '#60a5fa' },
@@ -172,7 +172,7 @@ export default function LogMealsPage() {
         {/* Meal selector */}
         <div>
           <p className="text-xs mb-2" style={{ color: '#6b5f8a' }}>Pasto</p>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {MEALS.map((m) => (
               <button
                 key={m.name}
@@ -276,7 +276,7 @@ export default function LogMealsPage() {
               </button>
             </div>
 
-            <div className="flex items-end gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-end gap-3 sm:gap-4">
               <div>
                 <p className="text-xs mb-1.5" style={{ color: '#6b5f8a' }}>Quantità (g)</p>
                 <input
@@ -284,11 +284,11 @@ export default function LogMealsPage() {
                   min="1"
                   value={quantity}
                   onChange={(e) => setQuantity(e.target.value)}
-                  className="inp w-28"
+                  className="inp w-full sm:w-28"
                 />
               </div>
               {/* Macro preview */}
-              <div className="flex-1 grid grid-cols-4 gap-2 text-center pb-0.5">
+              <div className="grid grid-cols-4 gap-2 text-center sm:flex-1 pb-0.5">
                 {[
                   { label: 'kcal', value: previewKcal, color: '#a78bfa' },
                   { label: 'P', value: previewProtein, color: '#60a5fa' },

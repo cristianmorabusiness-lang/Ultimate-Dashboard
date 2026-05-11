@@ -23,7 +23,7 @@ export function WeightSparkline({ data }: Props) {
 
   return (
     <div>
-      <div className="flex items-center gap-4 mb-3">
+      <div className="flex items-center gap-3 md:gap-4 mb-3 flex-wrap">
         <div>
           <p className="font-mono text-xl font-medium" style={{ color: '#c4b5fd' }}>
             {vals[vals.length - 1]} <span className="text-xs" style={{ color: '#8b7faa' }}>kg</span>
