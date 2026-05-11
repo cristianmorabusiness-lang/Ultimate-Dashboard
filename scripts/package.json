@@ -1,0 +1,9 @@
+{
+  "name": "health-mentor-scripts",
+  "version": "1.0.0",
+  "private": true,
+  "description": "GitHub Actions sync scripts",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.2"
+  }
+}
