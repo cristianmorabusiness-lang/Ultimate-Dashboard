@@ -21,6 +21,7 @@ export default function LogWeightPage() {
   const [error, setError] = useState('')
 
   const today = new Date().toISOString().split('T')[0]
+  const todayLabel = new Date().toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' })
 
   async function load() {
     const res = await fetch('/api/log/weight')
@@ -53,7 +54,7 @@ export default function LogWeightPage() {
       await load()
     } else {
       const data = await res.json()
-      setError(data.error ?? 'Save failed')
+      setError(data.error ?? 'Errore nel salvataggio')
     }
     setSaving(false)
   }
@@ -61,18 +62,20 @@ export default function LogWeightPage() {
   const chartData = entries.map((e) => ({ logged_date: e.logged_date, weight_kg: e.weight_kg }))
 
   return (
-    <div className="p-6 max-w-2xl mx-auto space-y-6">
+    <div className="p-6 max-w-2xl mx-auto space-y-5">
       <div>
-        <h1 className="text-xl font-semibold text-white">Log Weight</h1>
-        <p className="text-neutral-400 text-sm">Daily check-in</p>
+        <h1 className="font-display text-2xl font-bold tracking-tight" style={{ color: '#ede9fe' }}>
+          Log Peso
+        </h1>
+        <p className="text-sm mt-0.5 capitalize" style={{ color: '#8b7faa' }}>{todayLabel}</p>
       </div>
 
-      <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-5">
-        <h2 className="text-sm font-medium text-neutral-300 mb-4">Today — {today}</h2>
+      <div className="card p-5">
+        <p className="section-label mb-4">Inserisci misurazione</p>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs text-neutral-400 mb-1.5">Weight (kg) *</label>
+              <label className="block text-xs mb-1.5" style={{ color: '#8b7faa' }}>Peso (kg) *</label>
               <input
                 type="number"
                 step="0.1"
@@ -82,11 +85,11 @@ export default function LogWeightPage() {
                 onChange={(e) => setWeight(e.target.value)}
                 placeholder="82.5"
                 required
-                className={input}
+                className="inp"
               />
             </div>
             <div>
-              <label className="block text-xs text-neutral-400 mb-1.5">Body fat % (optional)</label>
+              <label className="block text-xs mb-1.5" style={{ color: '#8b7faa' }}>% Grasso (opzionale)</label>
               <input
                 type="number"
                 step="0.1"
@@ -95,64 +98,72 @@ export default function LogWeightPage() {
                 value={bodyFat}
                 onChange={(e) => setBodyFat(e.target.value)}
                 placeholder="18.5"
-                className={input}
+                className="inp"
               />
             </div>
           </div>
           <div>
-            <label className="block text-xs text-neutral-400 mb-1.5">Note (optional)</label>
+            <label className="block text-xs mb-1.5" style={{ color: '#8b7faa' }}>Nota (opzionale)</label>
             <input
               type="text"
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              placeholder="e.g. post-workout, morning fasted"
-              className={input}
+              placeholder="es. mattina a digiuno, post-workout..."
+              className="inp"
             />
           </div>
-          {error && <p className="text-red-400 text-xs">{error}</p>}
-          <button
-            type="submit"
-            disabled={saving || !weight}
-            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:bg-emerald-900 disabled:text-emerald-700 text-white text-sm font-medium rounded-lg transition-colors"
-          >
-            {saving ? 'Saving...' : 'Log weight'}
+          {error && <p className="text-sm" style={{ color: '#f87171' }}>{error}</p>}
+          <button type="submit" disabled={saving || !weight} className="btn-primary">
+            {saving ? 'Salvataggio...' : 'Salva'}
           </button>
         </form>
       </div>
 
       {chartData.length > 0 && (
-        <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-5">
-          <h2 className="text-sm font-medium text-neutral-400 mb-4">Last 14 days</h2>
+        <div className="card p-5">
+          <p className="section-label mb-4">Andamento</p>
           <WeightSparkline data={chartData} />
         </div>
       )}
 
       {!loading && entries.length > 0 && (
-        <div className="bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden">
+        <div className="card overflow-hidden p-0">
+          <div className="px-5 py-3" style={{ borderBottom: '1px solid rgba(139,92,246,0.12)' }}>
+            <p className="section-label">Storico</p>
+          </div>
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-neutral-800">
-                <th className="text-left p-3 text-xs text-neutral-500 font-medium">Date</th>
-                <th className="text-right p-3 text-xs text-neutral-500 font-medium">Weight (kg)</th>
-                <th className="text-right p-3 text-xs text-neutral-500 font-medium">Body fat %</th>
-                <th className="text-left p-3 text-xs text-neutral-500 font-medium">Note</th>
+              <tr style={{ borderBottom: '1px solid rgba(139,92,246,0.08)' }}>
+                <th className="text-left px-5 py-2.5 text-xs font-medium" style={{ color: '#5e5479' }}>Data</th>
+                <th className="text-right px-5 py-2.5 text-xs font-medium" style={{ color: '#5e5479' }}>Peso</th>
+                <th className="text-right px-5 py-2.5 text-xs font-medium" style={{ color: '#5e5479' }}>% Grasso</th>
+                <th className="text-left px-5 py-2.5 text-xs font-medium" style={{ color: '#5e5479' }}>Nota</th>
               </tr>
             </thead>
             <tbody>
-              {entries.slice(0, 14).map((e) => (
-                <tr key={e.id} className="border-b border-neutral-800/50 hover:bg-neutral-800/30">
-                  <td className="p-3 text-neutral-300">{e.logged_date}</td>
-                  <td className="p-3 text-right text-white font-medium">{e.weight_kg}</td>
-                  <td className="p-3 text-right text-neutral-400">{e.body_fat_pct ?? '—'}</td>
-                  <td className="p-3 text-neutral-500 text-xs">{e.note ?? ''}</td>
+              {entries.slice(0, 14).map((e, idx) => (
+                <tr key={e.id}
+                  style={{ borderBottom: idx < Math.min(entries.length, 14) - 1 ? '1px solid rgba(139,92,246,0.06)' : undefined }}
+                  className="hover:bg-violet-500/[0.03] transition-colors">
+                  <td className="px-5 py-3 font-mono text-xs" style={{ color: '#8b7faa' }}>{e.logged_date}</td>
+                  <td className="px-5 py-3 text-right font-mono font-semibold" style={{ color: '#c4b5fd' }}>{e.weight_kg} kg</td>
+                  <td className="px-5 py-3 text-right font-mono text-xs" style={{ color: '#8b7faa' }}>
+                    {e.body_fat_pct != null ? `${e.body_fat_pct}%` : '—'}
+                  </td>
+                  <td className="px-5 py-3 text-xs" style={{ color: '#5e5479' }}>{e.note ?? ''}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       )}
+
+      {!loading && entries.length === 0 && (
+        <div className="card p-14 text-center">
+          <p className="text-base" style={{ color: '#b8add2' }}>Nessuna misurazione ancora.</p>
+          <p className="text-sm mt-1" style={{ color: '#8b7faa' }}>Inserisci il tuo peso ogni mattina per tracciare i progressi.</p>
+        </div>
+      )}
     </div>
   )
 }
-
-const input = 'w-full px-3 py-2 bg-neutral-800 border border-neutral-700 rounded-lg text-white text-sm placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent'

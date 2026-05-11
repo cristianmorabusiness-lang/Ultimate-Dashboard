@@ -14,10 +14,16 @@ interface Profile {
 }
 
 const PHASES = [
-  { value: 'cut', label: 'Cut — caloric deficit, fat loss' },
-  { value: 'bulk', label: 'Bulk — aggressive surplus, muscle gain' },
-  { value: 'lean_bulk', label: 'Lean Bulk — controlled surplus' },
-  { value: 'maintenance', label: 'Maintenance — caloric equilibrium' },
+  { value: 'cut',         label: 'Cut',         desc: 'Deficit calorico — perdita di grasso', color: '#60a5fa', bg: 'rgba(96,165,250,0.08)', border: 'rgba(96,165,250,0.25)' },
+  { value: 'bulk',        label: 'Bulk',        desc: 'Surplus aggressivo — massa muscolare', color: '#34d399', bg: 'rgba(52,211,153,0.08)', border: 'rgba(52,211,153,0.25)' },
+  { value: 'lean_bulk',   label: 'Lean Bulk',   desc: 'Surplus controllato — recomposizione', color: '#a78bfa', bg: 'rgba(167,139,250,0.08)', border: 'rgba(167,139,250,0.25)' },
+  { value: 'maintenance', label: 'Maintenance', desc: 'Equilibrio calorico — mantenimento',   color: '#fbbf24', bg: 'rgba(251,191,36,0.08)',  border: 'rgba(251,191,36,0.25)' },
+]
+
+const SEX_OPTIONS = [
+  { value: 'male',   label: 'Maschio' },
+  { value: 'female', label: 'Femmina' },
+  { value: 'other',  label: 'Altro' },
 ]
 
 export default function ProfilePage() {
@@ -48,10 +54,10 @@ export default function ProfilePage() {
         body: JSON.stringify(profile),
       })
       const data = await res.json()
-      if (!res.ok) setError(data.error ?? 'Save failed')
+      if (!res.ok) setError(data.error ?? 'Errore nel salvataggio')
       else setSaved(true)
     } catch {
-      setError('Network error')
+      setError('Errore di rete')
     } finally {
       setSaving(false)
     }
@@ -65,142 +71,173 @@ export default function ProfilePage() {
   if (loading) {
     return (
       <div className="p-6 flex items-center justify-center h-48">
-        <p className="text-neutral-500 text-sm">Loading...</p>
+        <p className="text-sm" style={{ color: '#8b7faa' }}>Caricamento...</p>
       </div>
     )
   }
 
   return (
-    <div className="p-6 max-w-2xl mx-auto space-y-6">
+    <div className="p-6 max-w-2xl mx-auto space-y-5">
       <div>
-        <h1 className="text-xl font-semibold text-white">Profile</h1>
-        <p className="text-neutral-400 text-sm">Your biometric profile and training goals</p>
+        <h1 className="font-display text-2xl font-bold tracking-tight" style={{ color: '#ede9fe' }}>Profilo</h1>
+        <p className="text-sm mt-0.5" style={{ color: '#8b7faa' }}>Dati biometrici e obiettivi di allenamento</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-5">
-        {/* Static biometrics */}
-        <Section title="Biometrics">
-          <Row label="Height (cm)">
-            <NumberInput
-              value={profile.height_cm ?? ''}
-              onChange={(v) => set('height_cm', v)}
-              placeholder="175"
-            />
-          </Row>
-          <Row label="Date of birth">
-            <input
-              type="date"
-              value={profile.birth_date ?? ''}
-              onChange={(e) => set('birth_date', e.target.value)}
-              className={inputClass}
-            />
-          </Row>
-          <Row label="Sex">
-            <select
-              value={profile.sex ?? ''}
-              onChange={(e) => set('sex', e.target.value as Profile['sex'])}
-              className={inputClass}
-            >
-              <option value="">Select...</option>
-              <option value="male">Male</option>
-              <option value="female">Female</option>
-              <option value="other">Other</option>
-            </select>
-          </Row>
-        </Section>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Biometrics */}
+        <div className="card p-5 space-y-4">
+          <p className="section-label">Biometria</p>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs mb-1.5" style={{ color: '#8b7faa' }}>Altezza (cm)</label>
+              <input
+                type="number"
+                value={profile.height_cm ?? ''}
+                onChange={(e) => set('height_cm', Number(e.target.value))}
+                placeholder="175"
+                className="inp"
+              />
+            </div>
+            <div>
+              <label className="block text-xs mb-1.5" style={{ color: '#8b7faa' }}>Data di nascita</label>
+              <input
+                type="date"
+                value={profile.birth_date ?? ''}
+                onChange={(e) => set('birth_date', e.target.value)}
+                className="inp"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs mb-2" style={{ color: '#8b7faa' }}>Sesso biologico</label>
+            <div className="flex gap-2">
+              {SEX_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => set('sex', opt.value as Profile['sex'])}
+                  className="flex-1 py-2 rounded-lg text-sm font-medium transition-all"
+                  style={profile.sex === opt.value
+                    ? { background: 'rgba(139,92,246,0.2)', border: '1px solid rgba(139,92,246,0.5)', color: '#c4b5fd' }
+                    : { background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(139,92,246,0.12)', color: '#8b7faa' }
+                  }
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
 
-        {/* Goals */}
-        <Section title="Daily Targets">
-          <Row label="TDEE (kcal/day)">
-            <NumberInput value={profile.tdee_kcal ?? ''} onChange={(v) => set('tdee_kcal', v)} placeholder="2500" />
-          </Row>
-          <Row label="Protein target (g)">
-            <NumberInput value={profile.protein_g ?? ''} onChange={(v) => set('protein_g', v)} placeholder="180" />
-          </Row>
-          <Row label="Carbs target (g)">
-            <NumberInput value={profile.carbs_g ?? ''} onChange={(v) => set('carbs_g', v)} placeholder="250" />
-          </Row>
-          <Row label="Fat target (g)">
-            <NumberInput value={profile.fat_g ?? ''} onChange={(v) => set('fat_g', v)} placeholder="70" />
-          </Row>
-        </Section>
+        {/* Daily targets */}
+        <div className="card p-5 space-y-4">
+          <p className="section-label">Obiettivi Giornalieri</p>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs mb-1.5" style={{ color: '#8b7faa' }}>TDEE (kcal/giorno)</label>
+              <input
+                type="number"
+                value={profile.tdee_kcal ?? ''}
+                onChange={(e) => set('tdee_kcal', Number(e.target.value))}
+                placeholder="2500"
+                className="inp"
+              />
+            </div>
+            <div>
+              <label className="block text-xs mb-1.5" style={{ color: '#8b7faa' }}>Proteine target (g)</label>
+              <input
+                type="number"
+                value={profile.protein_g ?? ''}
+                onChange={(e) => set('protein_g', Number(e.target.value))}
+                placeholder="180"
+                className="inp"
+              />
+            </div>
+            <div>
+              <label className="block text-xs mb-1.5" style={{ color: '#8b7faa' }}>Carboidrati target (g)</label>
+              <input
+                type="number"
+                value={profile.carbs_g ?? ''}
+                onChange={(e) => set('carbs_g', Number(e.target.value))}
+                placeholder="250"
+                className="inp"
+              />
+            </div>
+            <div>
+              <label className="block text-xs mb-1.5" style={{ color: '#8b7faa' }}>Grassi target (g)</label>
+              <input
+                type="number"
+                value={profile.fat_g ?? ''}
+                onChange={(e) => set('fat_g', Number(e.target.value))}
+                placeholder="70"
+                className="inp"
+              />
+            </div>
+          </div>
+
+          {/* Macro preview bar */}
+          {(profile.protein_g || profile.carbs_g || profile.fat_g) && (() => {
+            const p = (profile.protein_g ?? 0) * 4
+            const c = (profile.carbs_g ?? 0) * 4
+            const f = (profile.fat_g ?? 0) * 9
+            const total = p + c + f || 1
+            return (
+              <div className="space-y-1.5 pt-1">
+                <div className="flex gap-1 h-2 rounded-full overflow-hidden">
+                  <div style={{ width: `${(p / total) * 100}%`, background: '#60a5fa' }} />
+                  <div style={{ width: `${(c / total) * 100}%`, background: '#fbbf24' }} />
+                  <div style={{ width: `${(f / total) * 100}%`, background: '#f472b6' }} />
+                </div>
+                <div className="flex gap-4">
+                  <span className="text-xs font-mono" style={{ color: '#60a5fa' }}>P {Math.round((p / total) * 100)}%</span>
+                  <span className="text-xs font-mono" style={{ color: '#fbbf24' }}>C {Math.round((c / total) * 100)}%</span>
+                  <span className="text-xs font-mono" style={{ color: '#f472b6' }}>F {Math.round((f / total) * 100)}%</span>
+                </div>
+              </div>
+            )
+          })()}
+        </div>
 
         {/* Goal phase */}
-        <Section title="Goal Phase">
+        <div className="card p-5 space-y-3">
+          <p className="section-label">Fase di Obiettivo</p>
           <div className="space-y-2">
             {PHASES.map((p) => (
-              <label
+              <button
                 key={p.value}
-                className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
-                  profile.goal_phase === p.value
-                    ? 'border-emerald-700 bg-emerald-900/20'
-                    : 'border-neutral-700 bg-neutral-800/50 hover:border-neutral-600'
-                }`}
+                type="button"
+                onClick={() => set('goal_phase', p.value as Profile['goal_phase'])}
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all"
+                style={profile.goal_phase === p.value
+                  ? { background: p.bg, border: `1px solid ${p.border}` }
+                  : { background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(139,92,246,0.1)' }
+                }
               >
-                <input
-                  type="radio"
-                  name="goal_phase"
-                  value={p.value}
-                  checked={profile.goal_phase === p.value}
-                  onChange={() => set('goal_phase', p.value as Profile['goal_phase'])}
-                  className="accent-emerald-500"
-                />
-                <span className="text-sm text-neutral-200">{p.label}</span>
-              </label>
+                <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: profile.goal_phase === p.value ? p.color : '#3d3459' }} />
+                <div>
+                  <span className="text-sm font-semibold" style={{ color: profile.goal_phase === p.value ? p.color : '#b8add2' }}>
+                    {p.label}
+                  </span>
+                  <span className="text-xs ml-2" style={{ color: '#8b7faa' }}>{p.desc}</span>
+                </div>
+              </button>
             ))}
           </div>
-        </Section>
+        </div>
 
-        {error && <p className="text-red-400 text-sm">{error}</p>}
+        {error && <p className="text-sm" style={{ color: '#f87171' }}>{error}</p>}
 
         <div className="flex items-center gap-3">
-          <button
-            type="submit"
-            disabled={saving}
-            className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:bg-emerald-900 text-white text-sm font-medium rounded-lg transition-colors"
-          >
-            {saving ? 'Saving...' : 'Save profile'}
+          <button type="submit" disabled={saving} className="btn-primary">
+            {saving ? 'Salvataggio...' : 'Salva profilo'}
           </button>
-          {saved && <span className="text-emerald-400 text-sm">Saved</span>}
+          {saved && (
+            <span className="text-sm font-medium" style={{ color: '#4ade80' }}>
+              Salvato
+            </span>
+          )}
         </div>
       </form>
-    </div>
-  )
-}
-
-const inputClass =
-  'w-full px-3 py-2 bg-neutral-800 border border-neutral-700 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent'
-
-function NumberInput({ value, onChange, placeholder }: {
-  value: number | ''
-  onChange: (v: number) => void
-  placeholder: string
-}) {
-  return (
-    <input
-      type="number"
-      value={value}
-      onChange={(e) => onChange(Number(e.target.value))}
-      placeholder={placeholder}
-      className={inputClass}
-    />
-  )
-}
-
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-5 space-y-4">
-      <h2 className="text-sm font-medium text-neutral-300">{title}</h2>
-      {children}
-    </div>
-  )
-}
-
-function Row({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="flex items-center gap-4">
-      <label className="text-sm text-neutral-400 w-44 shrink-0">{label}</label>
-      <div className="flex-1">{children}</div>
     </div>
   )
 }

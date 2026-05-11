@@ -9,6 +9,14 @@ interface WeeklySummary {
   created_at: string
 }
 
+function getLastMonday(): string {
+  const d = new Date()
+  const day = d.getDay()
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1)
+  d.setDate(diff)
+  return d.toISOString().split('T')[0]
+}
+
 export default function WeeklyReportPage() {
   const [summary, setSummary] = useState<WeeklySummary | null>(null)
   const [loading, setLoading] = useState(true)
@@ -16,18 +24,13 @@ export default function WeeklyReportPage() {
   const [error, setError] = useState('')
 
   const lastMonday = getLastMonday()
+  const weekLabel = new Date(lastMonday).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' })
 
   useEffect(() => {
     fetch(`/api/ai/weekly-report?date=${lastMonday}`)
       .then((r) => r.json())
-      .then((data) => {
-        if (data.summary) setSummary(data.summary)
-        setLoading(false)
-      })
-      .catch(() => {
-        setError('Failed to load report')
-        setLoading(false)
-      })
+      .then((data) => { if (data.summary) setSummary(data.summary); setLoading(false) })
+      .catch(() => { setError('Errore di caricamento'); setLoading(false) })
   }, [lastMonday])
 
   async function generate() {
@@ -41,75 +44,71 @@ export default function WeeklyReportPage() {
       })
       const data = await res.json()
       if (data.summary) setSummary(data.summary)
-      else setError(data.error ?? 'Failed to generate')
-    } catch {
-      setError('Network error')
-    } finally {
-      setGenerating(false)
-    }
+      else setError(data.error ?? 'Generazione fallita')
+    } catch { setError('Errore di rete') }
+    finally { setGenerating(false) }
   }
 
   return (
-    <div className="p-6 max-w-3xl mx-auto space-y-6">
+    <div className="p-6 max-w-3xl mx-auto space-y-5">
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-white">Weekly Report</h1>
-          <p className="text-neutral-400 text-sm">
-            Week of {new Date(lastMonday).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-          </p>
+          <h1 className="font-display text-2xl font-bold tracking-tight" style={{ color: '#ede9fe' }}>
+            Report Settimanale
+          </h1>
+          <p className="text-sm mt-0.5" style={{ color: '#8b7faa' }}>Settimana del {weekLabel}</p>
         </div>
-        <button
-          onClick={generate}
-          disabled={generating}
-          className="px-3 py-1.5 text-sm bg-emerald-700 hover:bg-emerald-600 disabled:bg-neutral-800 disabled:text-neutral-500 text-white rounded-lg transition-colors"
-        >
-          {generating ? 'Generating...' : summary ? 'Regenerate' : 'Generate Report'}
+        <button onClick={generate} disabled={generating} className="btn-primary">
+          {generating ? 'Generazione...' : summary ? 'Rigenera' : 'Genera Report'}
         </button>
       </div>
 
       {loading && (
-        <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-12 text-center">
-          <p className="text-neutral-500 text-sm">Loading...</p>
+        <div className="card p-14 text-center">
+          <p className="text-sm" style={{ color: '#8b7faa' }}>Caricamento...</p>
         </div>
       )}
 
       {!loading && !summary && !generating && (
-        <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-12 text-center space-y-3">
-          <p className="text-neutral-400">No weekly report yet for this week.</p>
-          <p className="text-neutral-500 text-sm">Click &ldquo;Generate Report&rdquo; to create a deep-dive analysis using Claude Opus.</p>
+        <div className="card p-14 text-center space-y-3">
+          <p className="text-base" style={{ color: '#b8add2' }}>Nessun report per questa settimana.</p>
+          <p className="text-sm" style={{ color: '#8b7faa' }}>
+            Clicca &ldquo;Genera Report&rdquo; per un&apos;analisi approfondita con Claude Opus.
+          </p>
         </div>
       )}
 
       {generating && (
-        <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-12 text-center">
-          <p className="text-neutral-400 text-sm">Generating your weekly analysis with Claude Opus...</p>
-          <p className="text-neutral-500 text-xs mt-1">This may take 15–30 seconds</p>
+        <div className="card p-14 text-center space-y-2">
+          <div className="flex justify-center gap-1.5 mb-3">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="w-2 h-2 rounded-full animate-bounce"
+                style={{ background: '#8b5cf6', animationDelay: `${i * 0.15}s` }} />
+            ))}
+          </div>
+          <p className="text-sm" style={{ color: '#b8add2' }}>
+            Generazione analisi settimanale con Claude Opus...
+          </p>
+          <p className="text-xs" style={{ color: '#8b7faa' }}>Potrebbe richiedere 15–30 secondi</p>
         </div>
       )}
 
-      {error && <p className="text-red-400 text-sm">{error}</p>}
+      {error && <p className="text-sm" style={{ color: '#f87171' }}>{error}</p>}
 
       {summary && !generating && (
-        <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6">
-          <pre className="text-neutral-200 text-sm leading-relaxed whitespace-pre-wrap font-sans">
+        <div className="card p-6">
+          <pre className="text-sm leading-relaxed whitespace-pre-wrap font-sans" style={{ color: '#b8add2' }}>
             {summary.content}
           </pre>
-          <div className="mt-6 pt-4 border-t border-neutral-800 flex items-center justify-between text-xs text-neutral-600">
-            <span>{summary.model_used}</span>
-            <span>
-              Generated {new Date(summary.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+          <div className="mt-6 pt-4 flex items-center justify-between"
+            style={{ borderTop: '1px solid rgba(139,92,246,0.15)' }}>
+            <span className="font-mono text-xs" style={{ color: '#5e5479' }}>{summary.model_used}</span>
+            <span className="text-xs" style={{ color: '#5e5479' }}>
+              {new Date(summary.created_at).toLocaleDateString('it-IT', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
             </span>
           </div>
         </div>
       )}
     </div>
   )
-}
-
-function getLastMonday(): string {
-  const d = new Date()
-  const day = d.getDay()
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1)
-  d.setDate(diff)
-  return d.toISOString().split('T')[0]
 }
