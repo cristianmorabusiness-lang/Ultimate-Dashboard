@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { daysAgo } from '@/lib/date'
 import { SleepCharts } from '@/components/dashboard/SleepCharts'
 import type { WhoopDaily } from '@/lib/database.types'
 
@@ -9,7 +10,7 @@ export default async function SleepPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
-  const thirtyAgo = new Date(Date.now() - 30 * 86400000).toISOString().split('T')[0]
+  const thirtyAgo = daysAgo(30)
 
   const { data: raw } = await supabase
     .from('whoop_daily')

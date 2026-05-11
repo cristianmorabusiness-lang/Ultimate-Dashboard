@@ -44,7 +44,7 @@ export async function POST(request: Request) {
 
   const { date } = await request.json()
   const weekStart = date ?? getLastMonday()
-  const weekEnd = new Date(new Date(weekStart).getTime() + 6 * 86400000).toISOString().split('T')[0]
+  const weekEnd = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Rome' }).format(new Date(new Date(weekStart).getTime() + 6 * 86400000))
 
   const whoopRes = await supabase.from('whoop_daily').select('*').eq('user_id', user.id).gte('cycle_date', weekStart).lte('cycle_date', weekEnd).order('cycle_date')
   const weightRes = await supabase.from('weight_log').select('logged_date, weight_kg').eq('user_id', user.id).gte('logged_date', weekStart).lte('logged_date', weekEnd).order('logged_date')
@@ -142,9 +142,8 @@ Training:
 }
 
 function getLastMonday(): string {
-  const d = new Date()
-  const day = d.getDay()
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1)
-  d.setDate(diff)
-  return d.toISOString().split('T')[0]
+  const weekday = new Intl.DateTimeFormat('en-US', { timeZone: 'Europe/Rome', weekday: 'long' }).format(new Date())
+  const dayMap: Record<string, number> = { Sunday: 6, Monday: 0, Tuesday: 1, Wednesday: 2, Thursday: 3, Friday: 4, Saturday: 5 }
+  const daysBack = dayMap[weekday] ?? 0
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Rome' }).format(new Date(Date.now() - daysBack * 86400000))
 }

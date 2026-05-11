@@ -20,8 +20,8 @@ export default function LogWeightPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
-  const today = new Date().toISOString().split('T')[0]
-  const todayLabel = new Date().toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' })
+  const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Rome' }).format(new Date())
+  const todayLabel = new Date().toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Europe/Rome' })
 
   async function load() {
     const res = await fetch('/api/log/weight')

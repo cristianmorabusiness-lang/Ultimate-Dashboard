@@ -3,6 +3,7 @@ import { HRVChart } from '@/components/charts/HRVChart'
 import { WeightTrendChart } from '@/components/charts/WeightTrendChart'
 import { CalorieChart } from '@/components/charts/CalorieChart'
 import type { WhoopDaily, WeightLog, UserProfile, Meal } from '@/lib/database.types'
+import { daysAgo } from '@/lib/date'
 
 export const dynamic = 'force-dynamic'
 
@@ -11,7 +12,7 @@ export default async function AnalyticsPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
-  const thirtyDaysAgo = new Date(Date.now() - 30 * 86400000).toISOString().split('T')[0]
+  const thirtyDaysAgo = daysAgo(30)
 
   const [whoopRes, weightRes, profileRes, mealsRes] = await Promise.all([
     supabase.from('whoop_daily').select('cycle_date, hrv_rmssd_ms, recovery_score, sleep_performance, day_strain').eq('user_id', user.id).gte('cycle_date', thirtyDaysAgo).order('cycle_date', { ascending: true }),

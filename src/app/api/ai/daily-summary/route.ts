@@ -3,6 +3,7 @@ import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@/lib/supabase/server'
 import { PHASE_LABELS } from '@/lib/phase-detection'
 import type { Phase, WhoopDaily, UserProfile, PhaseHistory, MealItem } from '@/lib/database.types'
+import { localDate } from '@/lib/date'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
 
@@ -25,7 +26,7 @@ export async function GET() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const today = new Date().toISOString().split('T')[0]
+  const today = localDate()
 
   // Return cached summary if it exists for today
   const { data: cached } = await supabase

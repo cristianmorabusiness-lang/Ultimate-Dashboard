@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import type { Meal, MealItem } from '@/lib/database.types'
+import { localDate } from '@/lib/date'
 
 export async function GET(request: Request) {
   const supabase = await createClient()
@@ -8,7 +9,7 @@ export async function GET(request: Request) {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { searchParams } = new URL(request.url)
-  const date = searchParams.get('date') ?? new Date().toISOString().split('T')[0]
+  const date = searchParams.get('date') ?? localDate()
 
   const { data: mealsRaw } = await supabase
     .from('meals')

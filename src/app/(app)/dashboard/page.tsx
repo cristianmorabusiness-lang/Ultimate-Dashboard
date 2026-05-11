@@ -7,6 +7,7 @@ import { AISummaryCard } from '@/components/dashboard/AISummaryCard'
 import { PhaseDetectTrigger } from '@/components/dashboard/PhaseDetectTrigger'
 import Link from 'next/link'
 import type { WhoopDaily, UserProfile, PhaseHistory, MealItem } from '@/lib/database.types'
+import { localDate, daysAgo } from '@/lib/date'
 
 export const dynamic = 'force-dynamic'
 
@@ -21,8 +22,8 @@ export default async function DashboardPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
-  const today = new Date().toISOString().split('T')[0]
-  const fourteenDaysAgo = new Date(Date.now() - 14 * 86400000).toISOString().split('T')[0]
+  const today = localDate()
+  const fourteenDaysAgo = daysAgo(14)
 
   const [whoopRes, weightRes, profileRes, phaseRes, mealsRes] = await Promise.all([
     supabase.from('whoop_daily').select('*').eq('user_id', user.id).eq('cycle_date', today).maybeSingle(),

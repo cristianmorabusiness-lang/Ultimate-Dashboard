@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { computeWeightTrend, computeCaloricDelta, detectPhase } from '@/lib/phase-detection'
 import type { WeightLog, UserProfile, Meal } from '@/lib/database.types'
+import { localDate, daysAgo } from '@/lib/date'
 
 export async function GET() {
   const supabase = await createClient()
@@ -46,8 +47,8 @@ async function runPhaseDetection(
   supabase: Awaited<ReturnType<typeof createClient>>,
   userId: string
 ) {
-  const fourteenDaysAgo = new Date(Date.now() - 14 * 86400000).toISOString().split('T')[0]
-  const today = new Date().toISOString().split('T')[0]
+  const fourteenDaysAgo = daysAgo(14)
+  const today = localDate()
 
   const weightRes = await supabase.from('weight_log').select('weight_kg').eq('user_id', userId).gte('logged_date', fourteenDaysAgo).order('logged_date', { ascending: true })
   const profileRes = await supabase.from('user_profile').select('tdee_kcal').eq('user_id', userId).maybeSingle()

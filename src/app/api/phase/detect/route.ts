@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { detectPhase, computeWeightTrend, computeCaloricDelta } from '@/lib/phase-detection'
 import type { UserProfile, PhaseHistory } from '@/lib/database.types'
+import { localDate, daysAgo } from '@/lib/date'
 
 export async function POST() {
   const supabase = await createClient()
@@ -18,7 +19,7 @@ export async function POST() {
     return NextResponse.json({ skipped: true })
   }
 
-  const ago14 = new Date(Date.now() - 14 * 86400000).toISOString().split('T')[0]
+  const ago14 = daysAgo(14)
 
   const [profileRes, weightRes, mealsRes] = await Promise.all([
     supabase.from('user_profile').select('tdee_kcal').eq('user_id', user.id).maybeSingle(),
@@ -55,7 +56,7 @@ export async function POST() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   await supabase.from('phase_history').insert({
     user_id: user.id, phase: result.phase,
-    detected_at: new Date().toISOString().split('T')[0],
+    detected_at: localDate(),
     confidence: result.confidence, detection_v: 2,
     caloric_delta: Math.round(caloricDelta),
     weight_trend: Math.round(weightTrend * 1000) / 1000,

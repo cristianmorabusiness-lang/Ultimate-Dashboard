@@ -21,7 +21,9 @@ const MEALS = [
   { name: 'Post-workout', icon: '💪', order: 6 },
 ]
 
-function fmtDate(d: Date) { return d.toISOString().split('T')[0] }
+function fmtDate(d: Date) {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Rome' }).format(d)
+}
 function addDays(date: string, n: number) {
   const d = new Date(date); d.setDate(d.getDate() + n); return fmtDate(d)
 }

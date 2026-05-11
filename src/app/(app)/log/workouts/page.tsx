@@ -53,7 +53,7 @@ const WORKOUT_TYPES = [
 // ── Component ────────────────────────────────────────────────────────────────
 
 export default function LogWorkoutsPage() {
-  const today = new Date().toISOString().split('T')[0]
+  const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Rome' }).format(new Date())
   const [workouts, setWorkouts] = useState<Workout[]>([])
   const [loading, setLoading] = useState(true)
   const [activeWorkout, setActiveWorkout] = useState<string | null>(null)

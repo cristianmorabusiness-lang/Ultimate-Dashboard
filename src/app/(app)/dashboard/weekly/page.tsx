@@ -10,11 +10,11 @@ interface WeeklySummary {
 }
 
 function getLastMonday(): string {
-  const d = new Date()
-  const day = d.getDay()
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1)
-  d.setDate(diff)
-  return d.toISOString().split('T')[0]
+  const weekday = new Intl.DateTimeFormat('en-US', { timeZone: 'Europe/Rome', weekday: 'long' }).format(new Date())
+  const dayMap: Record<string, number> = { Sunday: 6, Monday: 0, Tuesday: 1, Wednesday: 2, Thursday: 3, Friday: 4, Saturday: 5 }
+  const daysBack = dayMap[weekday] ?? 0
+  const d = new Date(Date.now() - daysBack * 86400000)
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Rome' }).format(d)
 }
 
 export default function WeeklyReportPage() {
