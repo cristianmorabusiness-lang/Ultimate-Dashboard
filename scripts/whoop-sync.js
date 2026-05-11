@@ -1,20 +1,49 @@
 'use strict'
 
 // WHOOP daily sync — runs via GitHub Actions cron at 02:00 UTC
-// Refreshes OAuth token, fetches last 2 days of data, upserts to Supabase
-// Doubles as the daily Supabase free-tier keep-alive ping
+// Refresh token is persisted in Supabase app_config table (key: whoop_refresh_token)
+// Falls back to WHOOP_REFRESH_TOKEN env var on first run
 
 const { createClient } = require('@supabase/supabase-js')
 
 const WHOOP_TOKEN_URL = 'https://api.prod.whoop.com/oauth/oauth2/token'
 const WHOOP_API = 'https://api.prod.whoop.com/developer/v1'
 
-const required = ['WHOOP_CLIENT_ID', 'WHOOP_CLIENT_SECRET', 'WHOOP_REFRESH_TOKEN', 'SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY']
+const required = ['WHOOP_CLIENT_ID', 'WHOOP_CLIENT_SECRET', 'SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY']
 required.forEach((key) => {
   if (!process.env[key]) throw new Error(`Missing required env var: ${key}`)
 })
 
-async function refreshToken() {
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY,
+  { auth: { persistSession: false } }
+)
+
+async function getRefreshToken() {
+  const { data, error } = await supabase
+    .from('app_config')
+    .select('value')
+    .eq('key', 'whoop_refresh_token')
+    .single()
+
+  if (!error && data?.value) return data.value
+
+  // First run: fall back to env var
+  const envToken = process.env.WHOOP_REFRESH_TOKEN
+  if (envToken) return envToken
+
+  throw new Error('No refresh token found in Supabase app_config or WHOOP_REFRESH_TOKEN env var')
+}
+
+async function saveRefreshToken(token) {
+  const { error } = await supabase
+    .from('app_config')
+    .upsert({ key: 'whoop_refresh_token', value: token, updated_at: new Date().toISOString() })
+  if (error) throw new Error(`Failed to save refresh token: ${JSON.stringify(error)}`)
+}
+
+async function refreshToken(currentToken) {
   const res = await fetch(WHOOP_TOKEN_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -22,7 +51,7 @@ async function refreshToken() {
       grant_type: 'refresh_token',
       client_id: process.env.WHOOP_CLIENT_ID,
       client_secret: process.env.WHOOP_CLIENT_SECRET,
-      refresh_token: process.env.WHOOP_REFRESH_TOKEN,
+      refresh_token: currentToken,
       scope: 'offline read:recovery read:sleep read:workout read:cycles read:body_measurement',
     }),
   })
@@ -43,23 +72,19 @@ async function whoopGet(accessToken, path, params = {}) {
 async function main() {
   console.log(`[whoop-sync] Starting at ${new Date().toISOString()}`)
 
-  // 1. Refresh OAuth token
-  const tokens = await refreshToken()
+  // 1. Get current refresh token and exchange for new tokens
+  const currentRefreshToken = await getRefreshToken()
+  const tokens = await refreshToken(currentRefreshToken)
   const { access_token, refresh_token: newRefresh } = tokens
   console.log('[whoop-sync] Token refreshed')
 
-  // Expose new refresh token for the GitHub Actions secret-update step
-  if (newRefresh && newRefresh !== process.env.WHOOP_REFRESH_TOKEN) {
-    // GitHub Actions env file syntax
-    const fs = require('fs')
-    const envFile = process.env.GITHUB_ENV
-    if (envFile) {
-      fs.appendFileSync(envFile, `NEW_REFRESH_TOKEN=${newRefresh}\n`)
-      console.log('[whoop-sync] New refresh token exported to GITHUB_ENV')
-    }
+  // 2. Persist new refresh token to Supabase immediately
+  if (newRefresh) {
+    await saveRefreshToken(newRefresh)
+    console.log('[whoop-sync] Refresh token saved to Supabase')
   }
 
-  // 2. Fetch last 2 days (overlap prevents gaps on API delays)
+  // 3. Fetch last 2 days (overlap prevents gaps on API delays)
   const start = new Date(Date.now() - 2 * 86400000).toISOString()
   const [cycleData, sleepData, recoveryData] = await Promise.all([
     whoopGet(access_token, '/cycle', { start, limit: 10 }),
@@ -73,13 +98,6 @@ async function main() {
     console.log('[whoop-sync] No cycles to sync, done')
     return
   }
-
-  // 3. Connect to Supabase with service role key (bypasses RLS)
-  const supabase = createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY,
-    { auth: { persistSession: false } }
-  )
 
   // 4. Get the single user
   const { data: { users }, error: usersErr } = await supabase.auth.admin.listUsers()

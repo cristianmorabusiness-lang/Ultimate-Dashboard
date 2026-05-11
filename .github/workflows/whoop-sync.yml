@@ -39,13 +39,3 @@ jobs:
           SUPABASE_URL:              ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: node whoop-sync.js
-
-      - name: Rotate refresh token secret
-        if: ${{ env.NEW_REFRESH_TOKEN != '' }}
-        uses: gliech/create-github-secret-action@v1
-        with:
-          name: WHOOP_REFRESH_TOKEN
-          value: ${{ env.NEW_REFRESH_TOKEN }}
-          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-          # PERSONAL_ACCESS_TOKEN must have repo:secrets write scope
-          # Create at: GitHub > Settings > Developer settings > Personal access tokens
