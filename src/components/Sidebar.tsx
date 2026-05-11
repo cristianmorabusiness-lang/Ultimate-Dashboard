@@ -11,15 +11,17 @@ const NAV = [
     items: [
       { href: '/dashboard',           label: 'Dashboard',         exact: true,  icon: IconGrid },
       { href: '/dashboard/analytics', label: 'Analytics',         exact: false, icon: IconChart },
+      { href: '/dashboard/sleep',     label: 'Sonno',             exact: false, icon: IconMoon },
       { href: '/dashboard/weekly',    label: 'Report Settimanale',exact: false, icon: IconCalendar },
     ],
   },
   {
     group: 'Log',
     items: [
-      { href: '/log/meals',    label: 'Pasti',   exact: false, icon: IconFork },
-      { href: '/log/workouts', label: 'Workout', exact: false, icon: IconDumbbell },
-      { href: '/log/weight',   label: 'Peso',    exact: false, icon: IconScale },
+      { href: '/log/meals',            label: 'Pasti',           exact: false, icon: IconFork },
+      { href: '/log/workouts',         label: 'Workout',         exact: false, icon: IconDumbbell },
+      { href: '/log/workouts/history', label: 'Storico Workout', exact: false, icon: IconHistory },
+      { href: '/log/weight',           label: 'Peso',            exact: false, icon: IconScale },
     ],
   },
   {
@@ -335,6 +337,25 @@ function IconUser({ active, size = 14 }: { active: boolean; size?: number }) {
     <svg width={size} height={size} viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
       <circle cx="7" cy="4.5" r="2.5" stroke={c} strokeWidth="1.2" />
       <path d="M1.5 13c0-3 2.5-5 5.5-5s5.5 2 5.5 5" stroke={c} strokeWidth="1.2" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+function IconMoon({ active, size = 14 }: { active: boolean; size?: number }) {
+  const c = active ? '#a78bfa' : '#6b5f8a'
+  return (
+    <svg width={size} height={size} viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
+      <path d="M7 2C4.24 2 2 4.24 2 7s2.24 5 5 5c1.38 0 2.63-.56 3.54-1.46C9.9 10.7 9.5 10.74 9 10.74c-2.07 0-3.74-1.68-3.74-3.74C5.26 5.5 6 4.16 7.18 3.3A5 5 0 007 2z" fill={c} />
+    </svg>
+  )
+}
+
+function IconHistory({ active, size = 14 }: { active: boolean; size?: number }) {
+  const c = active ? '#a78bfa' : '#6b5f8a'
+  return (
+    <svg width={size} height={size} viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
+      <circle cx="7" cy="7" r="5.5" stroke={c} strokeWidth="1.2" />
+      <path d="M7 4v3.5l2 1.5" stroke={c} strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   )
 }

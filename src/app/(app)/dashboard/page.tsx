@@ -4,6 +4,7 @@ import { MacroBars } from '@/components/dashboard/MacroBars'
 import { WeightSparkline } from '@/components/dashboard/WeightSparkline'
 import { PhaseBadge } from '@/components/dashboard/PhaseBadge'
 import { AISummaryCard } from '@/components/dashboard/AISummaryCard'
+import { PhaseDetectTrigger } from '@/components/dashboard/PhaseDetectTrigger'
 import Link from 'next/link'
 import type { WhoopDaily, UserProfile, PhaseHistory, MealItem } from '@/lib/database.types'
 
@@ -51,9 +52,14 @@ export default async function DashboardPage() {
   }
 
   const dateStr = new Date().toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' })
+  const tdee = profile?.tdee_kcal ?? 0
+  const caloricBalance = tdee > 0 ? Math.round(macros.kcal - tdee) : null
+  const balancePct = tdee > 0 ? Math.min(Math.round((macros.kcal / tdee) * 100), 150) : 0
 
   return (
     <div className="p-4 md:p-6 max-w-5xl mx-auto space-y-4 md:space-y-5">
+      <PhaseDetectTrigger />
+
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
@@ -96,6 +102,62 @@ export default async function DashboardPage() {
           }}
         />
       </div>
+
+      {/* Caloric Balance */}
+      {caloricBalance !== null && (
+        <div className="card p-5">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-[11px] font-semibold uppercase tracking-widest" style={{ color: '#4a4268' }}>
+              Bilancio Calorico Oggi
+            </p>
+            <span className="font-mono text-sm font-bold" style={{
+              color: caloricBalance < -100 ? '#a78bfa' : caloricBalance > 100 ? '#fb923c' : '#22d3ee',
+            }}>
+              {caloricBalance > 0 ? '+' : ''}{caloricBalance} kcal
+            </span>
+          </div>
+
+          <div className="flex items-end gap-3 mb-3">
+            <div>
+              <p className="font-mono text-2xl font-bold" style={{ color: '#ede9fe' }}>{Math.round(macros.kcal)}</p>
+              <p className="text-[10px] mt-0.5 uppercase tracking-wide" style={{ color: '#5e5479' }}>consumate</p>
+            </div>
+            <div className="flex-1 flex items-center justify-center pb-2">
+              <span className="text-xs" style={{ color: '#4a4268' }}>/ {tdee} target</span>
+            </div>
+            <div className="text-right">
+              <p className="font-mono text-base font-semibold" style={{
+                color: caloricBalance < -100 ? '#a78bfa' : caloricBalance > 100 ? '#fb923c' : '#22d3ee',
+              }}>
+                {caloricBalance < 0 ? 'Deficit' : caloricBalance > 0 ? 'Surplus' : 'Pari'}
+              </p>
+              <p className="text-[10px] uppercase tracking-wide" style={{ color: '#5e5479' }}>
+                {Math.abs(caloricBalance)} kcal
+              </p>
+            </div>
+          </div>
+
+          {/* Progress bar */}
+          <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(139,92,246,0.12)' }}>
+            <div
+              className="h-full rounded-full transition-all duration-700"
+              style={{
+                width: `${Math.min(balancePct, 100)}%`,
+                background: balancePct > 110
+                  ? 'linear-gradient(90deg, #8b5cf6, #fb923c)'
+                  : balancePct > 90
+                    ? 'linear-gradient(90deg, #6d28d9, #8b5cf6)'
+                    : 'linear-gradient(90deg, #4f46e5, #7c3aed)',
+              }}
+            />
+          </div>
+          <div className="flex justify-between mt-1">
+            <span className="text-[9px]" style={{ color: '#4a4268' }}>0 kcal</span>
+            <span className="text-[9px]" style={{ color: '#4a4268' }}>{balancePct}% del target</span>
+            <span className="text-[9px]" style={{ color: '#4a4268' }}>{tdee} kcal</span>
+          </div>
+        </div>
+      )}
 
       {/* Weight sparkline */}
       {weights.length > 0 && (
