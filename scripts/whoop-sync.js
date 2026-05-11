@@ -8,7 +8,7 @@ const { createClient } = require('@supabase/supabase-js')
 const ws = require('ws')
 
 const WHOOP_TOKEN_URL = 'https://api.prod.whoop.com/oauth/oauth2/token'
-const WHOOP_API = 'https://api.prod.whoop.com/developer/v1'
+const WHOOP_API = 'https://api.prod.whoop.com/developer/v2'
 
 const required = ['WHOOP_CLIENT_ID', 'WHOOP_CLIENT_SECRET', 'SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY']
 required.forEach((key) => {
