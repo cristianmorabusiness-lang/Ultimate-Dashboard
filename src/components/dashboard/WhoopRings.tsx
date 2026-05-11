@@ -170,15 +170,15 @@ export function WhoopRings({ whoop }: Props) {
 
       {/* Secondary metrics */}
       <div className="grid grid-cols-4 gap-2">
-        {extra.spo2 !== null && <Chip label="SpO2" value={extra.spo2} unit="%" color="#6ee7b7" />}
-        {extra.skinTemp !== null && <Chip label="Temp Cute" value={extra.skinTemp} unit="°C" color="#fca5a5" />}
-        {extra.respiratory !== null && <Chip label="Respiraz." value={extra.respiratory} unit="/min" color="#93c5fd" />}
-        {whoop.sleep_disturbances !== null && <Chip label="Disturbi" value={whoop.sleep_disturbances} color="#fdba74" />}
-        {extra.efficiency !== null && <Chip label="Efficienza" value={extra.efficiency} unit="%" color="#a78bfa" />}
-        {extra.consistency !== null && <Chip label="Consist." value={extra.consistency} unit="%" color="#c4b5fd" />}
-        {extra.avgHR !== null && <Chip label="HR Media" value={extra.avgHR} unit="bpm" color="#fb7185" />}
-        {extra.maxHR !== null && <Chip label="HR Max" value={extra.maxHR} unit="bpm" color="#f43f5e" />}
-        {extra.sleepCycles !== null && <Chip label="Cicli Sonno" value={extra.sleepCycles} color="#a78bfa" />}
+        {extra.spo2 != null && <Chip label="SpO2" value={extra.spo2} unit="%" color="#6ee7b7" />}
+        {extra.skinTemp != null && <Chip label="Temp Cute" value={extra.skinTemp} unit="°C" color="#fca5a5" />}
+        {extra.respiratory != null && <Chip label="Respiraz." value={extra.respiratory} unit="/min" color="#93c5fd" />}
+        {whoop.sleep_disturbances != null && <Chip label="Disturbi" value={whoop.sleep_disturbances} color="#fdba74" />}
+        {extra.efficiency != null && <Chip label="Efficienza" value={extra.efficiency} unit="%" color="#a78bfa" />}
+        {extra.consistency != null && <Chip label="Consist." value={extra.consistency} unit="%" color="#c4b5fd" />}
+        {extra.avgHR != null && <Chip label="HR Media" value={extra.avgHR} unit="bpm" color="#fb7185" />}
+        {extra.maxHR != null && <Chip label="HR Max" value={extra.maxHR} unit="bpm" color="#f43f5e" />}
+        {extra.sleepCycles != null && <Chip label="Cicli Sonno" value={extra.sleepCycles} color="#a78bfa" />}
       </div>
 
       {/* Sleep stages */}
