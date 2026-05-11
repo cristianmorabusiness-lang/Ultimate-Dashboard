@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  experimental: {
+    nodeMiddleware: true,
+  },
   async headers() {
     return [
       {
