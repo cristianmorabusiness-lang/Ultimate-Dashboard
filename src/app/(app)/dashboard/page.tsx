@@ -118,18 +118,6 @@ export default async function DashboardPage() {
         ))}
       </div>
 
-      {/* Mobile-only: links to Analytics & Weekly (not in bottom nav) */}
-      <div className="md:hidden grid grid-cols-2 gap-3">
-        {[
-          { href: '/dashboard/analytics', label: 'Analytics', icon: '📊' },
-          { href: '/dashboard/weekly', label: 'Report', icon: '📋' },
-        ].map((a) => (
-          <Link key={a.href} href={a.href} className="card p-3 text-center block">
-            <div className="text-xl mb-1">{a.icon}</div>
-            <p className="text-xs font-semibold" style={{ color: '#d8b4fe' }}>{a.label}</p>
-          </Link>
-        ))}
-      </div>
     </div>
   )
 }
