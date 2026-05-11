@@ -3,8 +3,18 @@
 @tailwind utilities;
 
 :root {
-  --background: #09090b;
-  --foreground: #fafafa;
+  --bg: #08080f;
+  --bg-card: #0c0c1a;
+  --border: rgba(109, 40, 217, 0.22);
+  --border-hover: rgba(124, 58, 237, 0.45);
+  --accent: #7c3aed;
+  --accent-light: #a78bfa;
+  --accent-dim: rgba(124, 58, 237, 0.08);
+  --glow-sm: 0 0 16px rgba(124, 58, 237, 0.1);
+  --glow-md: 0 0 32px rgba(124, 58, 237, 0.15), 0 0 1px rgba(167, 139, 250, 0.2);
+  --text-primary: #f1eeff;
+  --text-secondary: #8b7eb8;
+  --text-muted: #4a4268;
 }
 
 * {
@@ -12,14 +22,95 @@
 }
 
 body {
-  background-color: var(--background);
-  color: var(--foreground);
-  font-family: Inter, system-ui, sans-serif;
+  background-color: var(--bg);
+  color: var(--text-primary);
+  font-family: var(--font-dm-sans), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Recharts tooltip */
-.recharts-tooltip-wrapper {
+h1, h2, h3, .font-display {
+  font-family: var(--font-syne), system-ui, sans-serif;
+}
+
+.font-mono, .tabular-nums {
+  font-family: var(--font-dm-mono), monospace;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(124, 58, 237, 0.3); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(124, 58, 237, 0.5); }
+
+/* Card */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  transition: border-color 0.2s;
+}
+
+.card:hover {
+  border-color: rgba(124, 58, 237, 0.35);
+}
+
+.card-glow {
+  box-shadow: var(--glow-sm);
+}
+
+/* Input */
+.inp {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  font-family: var(--font-dm-sans), system-ui, sans-serif;
+  transition: border-color 0.15s, box-shadow 0.15s;
   outline: none;
 }
+
+.inp::placeholder { color: var(--text-muted); }
+.inp:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12);
+}
+
+/* Btn primary */
+.btn-primary {
+  padding: 0.5rem 1rem;
+  background: var(--accent);
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s, box-shadow 0.15s, opacity 0.15s;
+  font-family: var(--font-dm-sans), system-ui, sans-serif;
+}
+
+.btn-primary:hover { background: #6d28d9; box-shadow: var(--glow-sm); }
+.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
+
+/* Btn ghost */
+.btn-ghost {
+  padding: 0.5rem 1rem;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+  font-family: var(--font-dm-sans), system-ui, sans-serif;
+}
+
+.btn-ghost:hover { border-color: var(--border-hover); color: var(--text-primary); }
+
+/* Recharts */
+.recharts-tooltip-wrapper { outline: none; }
+.recharts-cartesian-axis-tick-value { fill: var(--text-muted); font-size: 11px; }

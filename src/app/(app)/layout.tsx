@@ -8,7 +8,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   if (!user) redirect('/')
 
   return (
-    <div className="flex h-screen bg-neutral-950 overflow-hidden">
+    <div className="flex h-screen bg-[#08080f] overflow-hidden">
       <Sidebar userEmail={user.email ?? ''} />
       <main className="flex-1 overflow-y-auto">
         {children}

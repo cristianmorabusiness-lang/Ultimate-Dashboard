@@ -29,7 +29,19 @@ interface Meal {
   items: MealItem[]
 }
 
-const MEAL_NAMES = ['Breakfast', 'Lunch', 'Dinner', 'Snack']
+const MEALS = [
+  { name: 'Colazione', icon: '☀️', order: 1 },
+  { name: 'Pranzo', icon: '🕛', order: 2 },
+  { name: 'Cena', icon: '🌙', order: 3 },
+  { name: 'Spuntino', icon: '🍎', order: 4 },
+  { name: 'Pre-workout', icon: '⚡', order: 5 },
+  { name: 'Post-workout', icon: '💪', order: 6 },
+]
+
+const SEARCH_SUGGESTIONS = [
+  'Petto di pollo', 'Salmone', 'Uova', 'Riso', 'Pasta', 'Avena',
+  'Broccoli', 'Spinaci', 'Patate dolci', 'Mandorle', 'Tonno', 'Manzo',
+]
 
 export default function LogMealsPage() {
   const today = new Date().toISOString().split('T')[0]
@@ -51,12 +63,14 @@ export default function LogMealsPage() {
 
   useEffect(() => { loadMeals() }, [loadMeals])
 
-  async function search() {
-    if (!query.trim()) return
+  async function search(q?: string) {
+    const searchQuery = q ?? query
+    if (!searchQuery.trim()) return
     setSearching(true)
     setResults([])
+    setSelected(null)
     try {
-      const res = await fetch(`/api/food/search?q=${encodeURIComponent(query)}`)
+      const res = await fetch(`/api/food/search?q=${encodeURIComponent(searchQuery)}`)
       const data = await res.json()
       setResults(data.results ?? [])
     } finally {
@@ -68,10 +82,11 @@ export default function LogMealsPage() {
     const existing = meals.find((m) => m.meal_name === mealName)
     if (existing) return existing.id
     setCreatingMeal(mealName)
+    const mealDef = MEALS.find((m) => m.name === mealName)
     const res = await fetch('/api/meals', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ meal_name: mealName, logged_date: today, meal_order: MEAL_NAMES.indexOf(mealName) + 1 }),
+      body: JSON.stringify({ meal_name: mealName, logged_date: today, meal_order: mealDef?.order ?? 9 }),
     })
     const data = await res.json()
     setCreatingMeal(null)
@@ -118,149 +133,234 @@ export default function LogMealsPage() {
     { kcal: 0, protein_g: 0, carbs_g: 0, fat_g: 0 }
   )
 
+  const previewKcal = selected ? Math.round(selected.kcal_100g * parseFloat(quantity || '0') / 100) : 0
+  const previewProtein = selected ? Math.round(selected.protein_100g * parseFloat(quantity || '0') / 100 * 10) / 10 : 0
+  const previewCarbs = selected ? Math.round(selected.carbs_100g * parseFloat(quantity || '0') / 100 * 10) / 10 : 0
+  const previewFat = selected ? Math.round(selected.fat_100g * parseFloat(quantity || '0') / 100 * 10) / 10 : 0
+
   return (
-    <div className="p-6 max-w-3xl mx-auto space-y-6">
+    <div className="p-6 max-w-3xl mx-auto space-y-5">
       <div>
-        <h1 className="text-xl font-semibold text-white">Log Meals</h1>
-        <p className="text-neutral-400 text-sm">{today}</p>
+        <h1 className="font-display text-2xl font-bold tracking-tight" style={{ color: '#f1eeff' }}>Pasti</h1>
+        <p className="text-sm mt-0.5" style={{ color: '#6b5f8a' }}>{today}</p>
       </div>
 
       {/* Daily totals */}
-      <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-4 grid grid-cols-4 gap-4 text-center">
+      <div className="card p-4 grid grid-cols-4 gap-3 text-center">
         {[
-          { label: 'Calories', value: `${Math.round(totals.kcal)}`, unit: 'kcal' },
-          { label: 'Protein', value: `${Math.round(totals.protein_g)}`, unit: 'g' },
-          { label: 'Carbs', value: `${Math.round(totals.carbs_g)}`, unit: 'g' },
-          { label: 'Fat', value: `${Math.round(totals.fat_g)}`, unit: 'g' },
-        ].map((stat) => (
-          <div key={stat.label}>
-            <p className="text-lg font-semibold text-white">{stat.value}<span className="text-xs text-neutral-500 ml-0.5">{stat.unit}</span></p>
-            <p className="text-xs text-neutral-500">{stat.label}</p>
+          { label: 'Calorie', value: Math.round(totals.kcal), unit: 'kcal', color: '#a78bfa' },
+          { label: 'Proteine', value: Math.round(totals.protein_g), unit: 'g', color: '#60a5fa' },
+          { label: 'Carbs', value: Math.round(totals.carbs_g), unit: 'g', color: '#fbbf24' },
+          { label: 'Grassi', value: Math.round(totals.fat_g), unit: 'g', color: '#f472b6' },
+        ].map((s) => (
+          <div key={s.label} className="rounded-xl py-3 px-2"
+            style={{ background: 'rgba(124,58,237,0.06)', border: '1px solid rgba(109,40,217,0.15)' }}>
+            <p className="font-mono text-xl font-medium" style={{ color: s.color }}>
+              {s.value}<span className="text-xs ml-0.5" style={{ color: '#4a4268' }}>{s.unit}</span>
+            </p>
+            <p className="text-[10px] mt-0.5 uppercase tracking-wide" style={{ color: '#4a4268' }}>{s.label}</p>
           </div>
         ))}
       </div>
 
       {/* Add food */}
-      <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-5 space-y-4">
-        <h2 className="text-sm font-medium text-neutral-300">Add food</h2>
+      <div className="card p-5 space-y-4">
+        <p className="text-[11px] font-semibold uppercase tracking-widest" style={{ color: '#4a4268' }}>
+          Aggiungi alimento
+        </p>
 
+        {/* Meal selector */}
         <div>
-          <label className="block text-xs text-neutral-400 mb-1.5">Meal</label>
-          <select
-            value={selectedMeal}
-            onChange={(e) => setSelectedMeal(e.target.value)}
-            className={inp}
-          >
-            <option value="">Select meal...</option>
-            {MEAL_NAMES.map((n) => (
-              <option key={n} value={n}>{n}</option>
+          <p className="text-xs mb-2" style={{ color: '#6b5f8a' }}>Pasto</p>
+          <div className="grid grid-cols-3 gap-2">
+            {MEALS.map((m) => (
+              <button
+                key={m.name}
+                onClick={() => setSelectedMeal(m.name)}
+                className="flex items-center gap-2 px-3 py-2 rounded-xl text-[13px] transition-all text-left"
+                style={selectedMeal === m.name ? {
+                  background: 'rgba(124,58,237,0.15)',
+                  border: '1px solid rgba(124,58,237,0.4)',
+                  color: '#d8b4fe',
+                } : {
+                  background: 'rgba(255,255,255,0.02)',
+                  border: '1px solid rgba(109,40,217,0.15)',
+                  color: '#6b5f8a',
+                }}
+              >
+                <span>{m.icon}</span>
+                <span>{m.name}</span>
+              </button>
             ))}
-          </select>
+          </div>
         </div>
 
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && search()}
-            placeholder="Search food (e.g. chicken breast, oats)"
-            className={`${inp} flex-1`}
-          />
-          <button
-            onClick={search}
-            disabled={searching || !query.trim()}
-            className="px-4 py-2 bg-neutral-700 hover:bg-neutral-600 disabled:opacity-50 text-white text-sm rounded-lg transition-colors"
-          >
-            {searching ? '...' : 'Search'}
-          </button>
+        {/* Search */}
+        <div>
+          <p className="text-xs mb-2" style={{ color: '#6b5f8a' }}>Cerca alimento</p>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && search()}
+              placeholder="es. petto di pollo, riso, salmone..."
+              className="inp flex-1"
+            />
+            <button onClick={() => search()} disabled={searching || !query.trim()} className="btn-primary whitespace-nowrap">
+              {searching ? '...' : 'Cerca'}
+            </button>
+          </div>
+
+          {/* Suggestions */}
+          {!query && !selected && results.length === 0 && (
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {SEARCH_SUGGESTIONS.map((s) => (
+                <button
+                  key={s}
+                  onClick={() => { setQuery(s); search(s) }}
+                  className="px-2.5 py-1 rounded-lg text-[11px] transition-colors"
+                  style={{ background: 'rgba(124,58,237,0.07)', border: '1px solid rgba(109,40,217,0.2)', color: '#8b7eb8' }}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
+        {/* Results */}
         {results.length > 0 && !selected && (
-          <div className="space-y-1 max-h-48 overflow-y-auto">
+          <div className="space-y-1 max-h-52 overflow-y-auto -mx-1 px-1">
             {results.map((r) => (
               <button
                 key={r.id}
                 onClick={() => setSelected(r)}
-                className="w-full text-left p-2.5 rounded-lg hover:bg-neutral-800 transition-colors"
+                className="w-full text-left px-3 py-2.5 rounded-xl transition-all"
+                style={{ border: '1px solid transparent' }}
+                onMouseEnter={(e) => {
+                  const el = e.currentTarget as HTMLElement
+                  el.style.background = 'rgba(124,58,237,0.08)'
+                  el.style.borderColor = 'rgba(109,40,217,0.2)'
+                }}
+                onMouseLeave={(e) => {
+                  const el = e.currentTarget as HTMLElement
+                  el.style.background = 'transparent'
+                  el.style.borderColor = 'transparent'
+                }}
               >
-                <p className="text-sm text-white">{r.name}</p>
-                <p className="text-xs text-neutral-500">
-                  {r.kcal_100g} kcal · P {r.protein_100g}g · C {r.carbs_100g}g · F {r.fat_100g}g (per 100g)
+                <p className="text-sm" style={{ color: '#f1eeff' }}>{r.name}</p>
+                <p className="text-[11px] mt-0.5 font-mono" style={{ color: '#6b5f8a' }}>
+                  {r.kcal_100g} kcal · P {r.protein_100g}g · C {r.carbs_100g}g · G {r.fat_100g}g &nbsp;(per 100g)
                 </p>
               </button>
             ))}
           </div>
         )}
 
+        {/* Selected food + quantity */}
         {selected && (
-          <div className="bg-neutral-800 rounded-xl p-4 space-y-3">
+          <div className="rounded-2xl p-4 space-y-4"
+            style={{ background: 'rgba(124,58,237,0.07)', border: '1px solid rgba(124,58,237,0.25)' }}>
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-sm font-medium text-white">{selected.name}</p>
-                <p className="text-xs text-neutral-400 mt-0.5">
+                <p className="text-sm font-semibold" style={{ color: '#f1eeff' }}>{selected.name}</p>
+                <p className="text-[11px] mt-0.5 font-mono" style={{ color: '#6b5f8a' }}>
                   {selected.kcal_100g} kcal per 100g
                 </p>
               </div>
-              <button onClick={() => setSelected(null)} className="text-neutral-500 hover:text-neutral-300 text-xs">
-                Change
+              <button onClick={() => { setSelected(null); setResults([]) }}
+                className="text-[11px] px-2 py-1 rounded-lg transition-colors"
+                style={{ color: '#6b5f8a', background: 'rgba(255,255,255,0.04)' }}>
+                Cambia
               </button>
             </div>
-            <div className="flex items-center gap-3">
-              <div className="flex-1">
-                <label className="block text-xs text-neutral-400 mb-1">Quantity (g)</label>
+
+            <div className="flex items-end gap-4">
+              <div>
+                <p className="text-xs mb-1.5" style={{ color: '#6b5f8a' }}>Quantità (g)</p>
                 <input
                   type="number"
                   min="1"
                   value={quantity}
                   onChange={(e) => setQuantity(e.target.value)}
-                  className={`${inp} w-28`}
+                  className="inp w-28"
                 />
               </div>
-              <div className="text-xs text-neutral-400 space-y-0.5 pt-4">
-                <p>{Math.round(selected.kcal_100g * parseFloat(quantity || '0') / 100)} kcal</p>
-                <p>P {Math.round(selected.protein_100g * parseFloat(quantity || '0') / 100 * 10) / 10}g</p>
+              {/* Macro preview */}
+              <div className="flex-1 grid grid-cols-4 gap-2 text-center pb-0.5">
+                {[
+                  { label: 'kcal', value: previewKcal, color: '#a78bfa' },
+                  { label: 'P', value: previewProtein, color: '#60a5fa' },
+                  { label: 'C', value: previewCarbs, color: '#fbbf24' },
+                  { label: 'G', value: previewFat, color: '#f472b6' },
+                ].map((m) => (
+                  <div key={m.label}>
+                    <p className="font-mono text-sm font-medium" style={{ color: m.color }}>{m.value}</p>
+                    <p className="text-[10px]" style={{ color: '#4a4268' }}>{m.label}</p>
+                  </div>
+                ))}
               </div>
             </div>
+
             <button
               onClick={addItem}
               disabled={adding || !selectedMeal || !quantity}
-              className="w-full py-2 bg-emerald-600 hover:bg-emerald-500 disabled:bg-emerald-900 disabled:text-emerald-700 text-white text-sm font-medium rounded-lg transition-colors"
+              className="btn-primary w-full"
             >
-              {adding || creatingMeal ? 'Adding...' : `Add to ${selectedMeal || 'meal'}`}
+              {adding || creatingMeal
+                ? 'Aggiunta...'
+                : selectedMeal
+                  ? `Aggiungi a ${selectedMeal}`
+                  : 'Seleziona prima un pasto'}
             </button>
           </div>
         )}
       </div>
 
-      {/* Meal log */}
-      {meals.map((meal) => (
-        <div key={meal.id} className="bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden">
-          <div className="px-4 py-3 border-b border-neutral-800">
-            <h3 className="text-sm font-medium text-neutral-300">{meal.meal_name}</h3>
-          </div>
-          {meal.items.length === 0 ? (
-            <p className="p-4 text-xs text-neutral-600">No items yet</p>
-          ) : (
-            <table className="w-full text-sm">
-              <tbody>
+      {/* Meal logs */}
+      {meals.map((meal) => {
+        const mealDef = MEALS.find((m) => m.name === meal.meal_name)
+        const mealTotals = meal.items.reduce(
+          (acc, item) => ({ kcal: acc.kcal + item.kcal, protein_g: acc.protein_g + item.protein_g }),
+          { kcal: 0, protein_g: 0 }
+        )
+        return (
+          <div key={meal.id} className="card overflow-hidden">
+            <div className="px-4 py-3 flex items-center justify-between"
+              style={{ borderBottom: '1px solid rgba(109,40,217,0.15)' }}>
+              <div className="flex items-center gap-2">
+                <span className="text-base">{mealDef?.icon ?? '🍽'}</span>
+                <span className="text-sm font-semibold" style={{ color: '#d8b4fe' }}>{meal.meal_name}</span>
+              </div>
+              {meal.items.length > 0 && (
+                <span className="font-mono text-[11px]" style={{ color: '#6b5f8a' }}>
+                  {Math.round(mealTotals.kcal)} kcal · P {Math.round(mealTotals.protein_g)}g
+                </span>
+              )}
+            </div>
+            {meal.items.length === 0 ? (
+              <p className="p-4 text-xs" style={{ color: '#4a4268' }}>Nessun alimento</p>
+            ) : (
+              <div className="divide-y" style={{ borderColor: 'rgba(109,40,217,0.08)' }}>
                 {meal.items.map((item) => (
-                  <tr key={item.id} className="border-b border-neutral-800/50">
-                    <td className="p-3 text-neutral-200">{item.food_name}</td>
-                    <td className="p-3 text-right text-neutral-400 text-xs">{item.quantity_g}g</td>
-                    <td className="p-3 text-right text-neutral-300 text-xs">{Math.round(item.kcal)} kcal</td>
-                    <td className="p-3 text-right text-neutral-500 text-xs">P {item.protein_g}g</td>
-                    <td className="p-3 text-right text-neutral-500 text-xs">C {item.carbs_g}g</td>
-                    <td className="p-3 text-right text-neutral-500 text-xs">F {item.fat_g}g</td>
-                  </tr>
+                  <div key={item.id} className="px-4 py-2.5 flex items-center justify-between">
+                    <div>
+                      <p className="text-sm" style={{ color: '#e2d9f3' }}>{item.food_name}</p>
+                      <p className="text-[11px] font-mono mt-0.5" style={{ color: '#4a4268' }}>
+                        {item.quantity_g}g · P {item.protein_g}g · C {item.carbs_g}g · G {item.fat_g}g
+                      </p>
+                    </div>
+                    <span className="font-mono text-sm" style={{ color: '#a78bfa' }}>
+                      {Math.round(item.kcal)}<span className="text-[10px] ml-0.5" style={{ color: '#4a4268' }}>kcal</span>
+                    </span>
+                  </div>
                 ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-      ))}
+              </div>
+            )}
+          </div>
+        )
+      })}
     </div>
   )
 }
-
-const inp = 'w-full px-3 py-2 bg-neutral-800 border border-neutral-700 rounded-lg text-white text-sm placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent'
