@@ -63,7 +63,7 @@ async function main() {
   const start = new Date(Date.now() - 2 * 86400000).toISOString()
   const [cycleData, sleepData, recoveryData] = await Promise.all([
     whoopGet(access_token, '/cycle', { start, limit: 10 }),
-    whoopGet(access_token, '/sleep', { start, limit: 10 }),
+    whoopGet(access_token, '/activity/sleep', { start, limit: 10 }),
     whoopGet(access_token, '/recovery', { start, limit: 10 }),
   ])
 
