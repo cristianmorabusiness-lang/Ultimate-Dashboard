@@ -13,7 +13,7 @@ interface DailySummary {
 interface Props { userId: string; today: string }
 
 const TONE = {
-  encouraging: { border: '#4ade80', bg: 'rgba(74,222,128,0.06)', label: 'Ottimo', labelColor: '#4ade80' },
+  encouraging: { border: '#a78bfa', bg: 'rgba(167,139,250,0.06)', label: 'Ottimo', labelColor: '#c4b5fd' },
   neutral:     { border: '#a78bfa', bg: 'rgba(167,139,250,0.06)', label: 'Neutro', labelColor: '#a78bfa' },
   cautionary:  { border: '#fbbf24', bg: 'rgba(251,191,36,0.06)',  label: 'Attenzione', labelColor: '#fbbf24' },
 }

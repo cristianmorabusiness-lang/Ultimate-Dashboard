@@ -37,7 +37,7 @@ export function WeightSparkline({ data }: Props) {
           <p className="text-[11px]" style={{ color: '#8b7faa' }}>Media 14gg</p>
         </div>
         <div>
-          <p className="font-mono text-base" style={{ color: (vals[vals.length - 1] - vals[0]) < 0 ? '#4ade80' : '#fb923c' }}>
+          <p className="font-mono text-base" style={{ color: (vals[vals.length - 1] - vals[0]) < 0 ? '#a78bfa' : '#fb923c' }}>
             {((vals[vals.length - 1] - vals[0]) >= 0 ? '+' : '')}{Math.round((vals[vals.length - 1] - vals[0]) * 10) / 10} kg
           </p>
           <p className="text-[11px]" style={{ color: '#8b7faa' }}>Variazione</p>

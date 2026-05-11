@@ -232,7 +232,7 @@ export default function ProfilePage() {
             {saving ? 'Salvataggio...' : 'Salva profilo'}
           </button>
           {saved && (
-            <span className="text-sm font-medium" style={{ color: '#4ade80' }}>
+            <span className="text-sm font-medium" style={{ color: '#a78bfa' }}>
               Salvato
             </span>
           )}

@@ -43,7 +43,7 @@ export function HRVChart({ data }: Props) {
             <Tooltip contentStyle={TOOLTIP} />
             <Legend wrapperStyle={{ fontSize: '11px', color: '#8b7faa', paddingTop: '8px' }} />
             <Line yAxisId="left" type="monotone" dataKey="hrv" name="HRV (ms)" stroke="#8b5cf6" strokeWidth={2} dot={false} connectNulls />
-            <Line yAxisId="right" type="monotone" dataKey="recovery" name="Recovery %" stroke="#4ade80" strokeWidth={2} dot={false} connectNulls />
+            <Line yAxisId="right" type="monotone" dataKey="recovery" name="Recovery %" stroke="#c4b5fd" strokeWidth={2} dot={false} connectNulls />
           </LineChart>
         </ResponsiveContainer>
       </div>

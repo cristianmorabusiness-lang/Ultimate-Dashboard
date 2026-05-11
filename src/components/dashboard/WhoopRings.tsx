@@ -94,7 +94,7 @@ function SleepStages({ rem, deep, light, awake }: {
 
 function recoveryColor(score: number | null) {
   if (score === null) return '#5e5479'
-  if (score >= 67) return '#4ade80'
+  if (score >= 67) return '#a78bfa'
   if (score >= 34) return '#facc15'
   return '#f87171'
 }
