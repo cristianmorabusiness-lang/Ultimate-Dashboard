@@ -7,9 +7,6 @@ on:
 
 permissions:
   contents: read
-  # Required for the secret-update step
-  # Set this in your repo: Settings > Actions > General > Workflow permissions > Read and write
-  secrets: inherit
 
 jobs:
   sync:
