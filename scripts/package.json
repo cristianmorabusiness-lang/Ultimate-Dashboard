@@ -4,6 +4,7 @@
   "private": true,
   "description": "GitHub Actions sync scripts",
   "dependencies": {
-    "@supabase/supabase-js": "^2.49.2"
+    "@supabase/supabase-js": "^2.49.2",
+    "ws": "^8.18.0"
   }
 }

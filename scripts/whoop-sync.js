@@ -5,6 +5,7 @@
 // Falls back to WHOOP_REFRESH_TOKEN env var on first run
 
 const { createClient } = require('@supabase/supabase-js')
+const ws = require('ws')
 
 const WHOOP_TOKEN_URL = 'https://api.prod.whoop.com/oauth/oauth2/token'
 const WHOOP_API = 'https://api.prod.whoop.com/developer/v1'
@@ -17,7 +18,7 @@ required.forEach((key) => {
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY,
-  { auth: { persistSession: false } }
+  { auth: { persistSession: false }, realtime: { transport: ws } }
 )
 
 async function getRefreshToken() {
