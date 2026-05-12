@@ -13,6 +13,7 @@ const NAV = [
       { href: '/dashboard/analytics', label: 'Analytics',         exact: false, icon: IconChart },
       { href: '/dashboard/sleep',     label: 'Sonno',             exact: false, icon: IconMoon },
       { href: '/dashboard/weekly',    label: 'Report Settimanale',exact: false, icon: IconCalendar },
+      { href: '/dashboard/coach',     label: 'Coach AI',          exact: false, icon: IconBrain },
     ],
   },
   {
@@ -346,6 +347,18 @@ function IconMoon({ active, size = 14 }: { active: boolean; size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
       <path d="M7 2C4.24 2 2 4.24 2 7s2.24 5 5 5c1.38 0 2.63-.56 3.54-1.46C9.9 10.7 9.5 10.74 9 10.74c-2.07 0-3.74-1.68-3.74-3.74C5.26 5.5 6 4.16 7.18 3.3A5 5 0 007 2z" fill={c} />
+    </svg>
+  )
+}
+
+function IconBrain({ active, size = 14 }: { active: boolean; size?: number }) {
+  const c = active ? '#a78bfa' : '#6b5f8a'
+  return (
+    <svg width={size} height={size} viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
+      <path d="M5 2.5C5 1.67 5.67 1 6.5 1S8 1.67 8 2.5c0 .28-.08.54-.21.77C8.56 3.1 9 3.75 9 4.5c0 .18-.03.35-.07.52C9.58 5.3 10 6 10 6.8c0 1-.67 1.84-1.6 2.1C8.15 9.55 7.6 10 7 10H6.5C5.67 10 5 9.33 5 8.5V2.5z" stroke={c} strokeWidth="1.1" />
+      <path d="M9 4.5c.6-.18 1.25.1 1.5.7.25.6-.05 1.28-.65 1.5" stroke={c} strokeWidth="1.1" strokeLinecap="round" />
+      <path d="M5 3C4.4 2.82 3.75 3.1 3.5 3.7 3.25 4.3 3.55 5 4.15 5.2" stroke={c} strokeWidth="1.1" strokeLinecap="round" />
+      <path d="M5.5 10v3M8.5 10v3" stroke={c} strokeWidth="1.1" strokeLinecap="round" opacity="0.6" />
     </svg>
   )
 }
