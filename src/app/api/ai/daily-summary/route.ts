@@ -73,22 +73,40 @@ export async function GET() {
 
   const phaseLabel = phase ? PHASE_LABELS[phase.phase as Phase] : 'Unknown'
 
-  // Extract actual wake time from WHOOP cycle end (Italy timezone)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const raw = whoop?.raw_json as Record<string, any> | null
+
+  const toItalyTime = (iso: string) =>
+    new Intl.DateTimeFormat('it-IT', { timeZone: 'Europe/Rome', hour: '2-digit', minute: '2-digit' }).format(new Date(iso))
+
+  // Wake time: prefer sleep.end (precise), fall back to cycle.end, then profile
+  const sleepEnd = raw?.sleep?.end as string | undefined
   const cycleEnd = raw?.cycle?.end as string | undefined
-  const actualWakeTime = cycleEnd
-    ? new Intl.DateTimeFormat('it-IT', { timeZone: 'Europe/Rome', hour: '2-digit', minute: '2-digit' }).format(new Date(cycleEnd))
-    : null
+  const actualWakeTime = sleepEnd ? toItalyTime(sleepEnd) : cycleEnd ? toItalyTime(cycleEnd) : null
+
+  // Workouts logged in WHOOP today
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const workouts = (raw?.workouts ?? []) as Record<string, any>[]
+  const workoutLines = workouts.map((w) => {
+    const wStart = w.start ? toItalyTime(w.start) : null
+    const wEnd = w.end ? toItalyTime(w.end) : null
+    const strain = w.score?.strain != null ? ` — strain ${w.score.strain.toFixed(1)}/21` : ''
+    return wStart ? `  • ${wStart}${wEnd ? `–${wEnd}` : ''} (sport_id: ${w.sport_id ?? '?'})${strain}` : null
+  }).filter(Boolean).join('\n')
 
   const routineLines = [
-    profile?.wake_time ? `- Typical wake time: ${profile.wake_time}` : null,
-    actualWakeTime ? `- Today's actual wake time (from WHOOP): ${actualWakeTime}` : null,
-    (profile?.workout_start && profile?.workout_end)
-      ? `- Training window: ${profile.workout_start}–${profile.workout_end}`
-      : profile?.workout_start
-        ? `- Usual training time: ${profile.workout_start}`
+    actualWakeTime
+      ? `- Wake time today (WHOOP): ${actualWakeTime}`
+      : profile?.wake_time
+        ? `- Typical wake time: ${profile.wake_time}`
         : null,
+    workoutLines
+      ? `- Workouts today (WHOOP):\n${workoutLines}`
+      : (profile?.workout_start && profile?.workout_end)
+          ? `- Typical training window: ${profile.workout_start}–${profile.workout_end}`
+          : profile?.workout_start
+              ? `- Typical training time: ${profile.workout_start}`
+              : null,
   ].filter(Boolean).join('\n')
 
   const userContext = `Date: ${today}

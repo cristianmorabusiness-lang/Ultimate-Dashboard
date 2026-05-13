@@ -94,10 +94,11 @@ async function main() {
 
   // 3. Fetch last 2 days (overlap prevents gaps on API delays)
   const start = new Date(Date.now() - 2 * 86400000).toISOString()
-  const [cycleData, sleepData, recoveryData] = await Promise.all([
+  const [cycleData, sleepData, recoveryData, workoutData] = await Promise.all([
     whoopGet(access_token, '/cycle', { start, limit: 10 }),
     whoopGet(access_token, '/activity/sleep', { start, limit: 10 }),
     whoopGet(access_token, '/recovery', { start, limit: 10 }),
+    whoopGet(access_token, '/activity/workout', { start, limit: 25 }),
   ])
 
   const cycles = cycleData.records ?? []
@@ -117,10 +118,13 @@ async function main() {
   const records = cycles.map((cycle) => {
     const sleep = sleepData.records?.find((s) => s.cycle_id === cycle.id)
     const recovery = recoveryData.records?.find((r) => r.cycle_id === cycle.id)
+    const cycleDate = toItalyDate(cycle.end ?? cycle.start)
+    // Workouts that started on this cycle's date (Italy time)
+    const workouts = (workoutData.records ?? []).filter((w) => toItalyDate(w.start) === cycleDate)
 
     return {
       user_id: userId,
-      cycle_date: toItalyDate(cycle.end ?? cycle.start),
+      cycle_date: cycleDate,
       cycle_id: cycle.id,
       recovery_score: recovery?.score?.recovery_score ?? null,
       hrv_rmssd_ms: recovery?.score?.hrv_rmssd_milli ?? null,
@@ -134,7 +138,7 @@ async function main() {
       energy_burnt_kcal: cycle.score?.kilojoule != null
         ? Math.round(cycle.score.kilojoule / 4.184)
         : null,
-      raw_json: { cycle, sleep: sleep ?? null, recovery: recovery ?? null },
+      raw_json: { cycle, sleep: sleep ?? null, recovery: recovery ?? null, workouts },
       synced_at: new Date().toISOString(),
     }
   })
