@@ -62,6 +62,13 @@ export default function WorkoutHistoryPage() {
   const [workouts, setWorkouts] = useState<WorkoutEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [expanded, setExpanded] = useState<Set<string>>(new Set())
+  const [addingTo, setAddingTo] = useState<string | null>(null)
+  const [addExercise, setAddExercise] = useState('')
+  const [addReps, setAddReps] = useState('')
+  const [addWeight, setAddWeight] = useState('')
+  const [addRpe, setAddRpe] = useState('')
+  const [addingSet, setAddingSet] = useState(false)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   useEffect(() => {
     Promise.all([
@@ -133,6 +140,42 @@ export default function WorkoutHistoryPage() {
       s.has(id) ? s.delete(id) : s.add(id)
       return s
     })
+  }
+
+  async function deleteWorkout(id: string) {
+    if (!confirm('Eliminare questa sessione?')) return
+    setDeletingId(id)
+    await fetch(`/api/workouts/${id}`, { method: 'DELETE' })
+    setWorkouts((prev) => prev.filter((w) => w.id !== id))
+    setDeletingId(null)
+  }
+
+  async function handleAddSet(e: React.FormEvent, workoutId: string) {
+    e.preventDefault()
+    if (!addExercise.trim()) return
+    setAddingSet(true)
+    const workout = workouts.find((w) => w.id === workoutId)
+    const sameEx = workout?.sets.filter((s) => s.exercise_name === addExercise).length ?? 0
+    await fetch('/api/workouts/sets', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        workout_id: workoutId,
+        exercise_name: addExercise,
+        set_number: sameEx + 1,
+        reps: addReps ? parseInt(addReps) : null,
+        weight_kg: addWeight ? parseFloat(addWeight) : null,
+        rpe: addRpe ? parseInt(addRpe) : null,
+      }),
+    })
+    // Reload workouts list
+    const res = await fetch('/api/workouts/history?limit=90')
+    const data = await res.json()
+    if (data.workouts) setWorkouts(data.workouts)
+    setAddReps('')
+    setAddWeight('')
+    setAddRpe('')
+    setAddingSet(false)
   }
 
   const WORKOUT_LABELS: Record<string, string> = {
@@ -538,40 +581,55 @@ export default function WorkoutHistoryPage() {
           {workouts.map((w) => {
             const open = expanded.has(w.id)
             const exNames = [...new Set(w.sets.map((s) => s.exercise_name))]
-            const sessionColor = SESSION_TYPES.find((s) => s.key === w.title)?.color
+            const sColor = SESSION_TYPES.find((s) => s.key === w.title)?.color
+            const isAdding = addingTo === w.id
             return (
               <div key={w.id} className="card overflow-hidden">
-                <button
-                  onClick={() => toggleExpand(w.id)}
-                  className="w-full px-4 py-3 flex items-center justify-between text-left"
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    {sessionColor && (
-                      <span className="w-2 h-2 rounded-full shrink-0" style={{ background: sessionColor }} />
-                    )}
+                {/* Header row */}
+                <div className="px-4 py-3 flex items-center justify-between">
+                  <button onClick={() => toggleExpand(w.id)} className="flex items-center gap-3 min-w-0 flex-1 text-left">
+                    {sColor && <span className="w-2 h-2 rounded-full shrink-0" style={{ background: sColor }} />}
                     <div>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-sm font-semibold" style={{ color: '#d8b4fe' }}>
-                          {w.title ?? WORKOUT_LABELS[w.workout_type] ?? w.workout_type}
-                        </span>
-                      </div>
+                      <span className="text-sm font-semibold" style={{ color: '#d8b4fe' }}>
+                        {w.title ?? WORKOUT_LABELS[w.workout_type] ?? w.workout_type}
+                      </span>
                       <p className="text-xs mt-0.5 font-mono" style={{ color: '#5e5479' }}>{w.logged_date}</p>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-4 shrink-0">
+                  </button>
+                  <div className="flex items-center gap-3 shrink-0">
                     {w.volume_kg > 0 && (
                       <div className="text-right">
                         <p className="font-mono text-sm font-semibold" style={{ color: '#fb923c' }}>
-                          {w.volume_kg.toLocaleString()}
-                          <span className="text-[10px] ml-0.5" style={{ color: '#5e5479' }}>kg</span>
+                          {w.volume_kg.toLocaleString()}<span className="text-[10px] ml-0.5" style={{ color: '#5e5479' }}>kg</span>
                         </p>
                         <p className="text-[10px]" style={{ color: '#5e5479' }}>volume</p>
                       </div>
                     )}
-                    <span style={{ color: '#5e5479', fontSize: 12 }}>{open ? '▲' : '▼'}</span>
+                    {/* Delete button */}
+                    <button
+                      onClick={() => deleteWorkout(w.id)}
+                      disabled={deletingId === w.id}
+                      title="Elimina sessione"
+                      className="p-1.5 rounded-lg transition-colors"
+                      style={{ color: '#4a4268' }}
+                      onMouseEnter={(e) => (e.currentTarget.style.color = '#f87171')}
+                      onMouseLeave={(e) => (e.currentTarget.style.color = '#4a4268')}
+                    >
+                      {deletingId === w.id ? (
+                        <span className="text-[10px]">...</span>
+                      ) : (
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
+                        </svg>
+                      )}
+                    </button>
+                    <button onClick={() => toggleExpand(w.id)} style={{ color: '#5e5479', fontSize: 12 }}>
+                      {open ? '▲' : '▼'}
+                    </button>
                   </div>
-                </button>
+                </div>
 
+                {/* Collapsed: exercise chips */}
                 {exNames.length > 0 && !open && (
                   <div className="px-4 pb-3 flex flex-wrap gap-1">
                     {exNames.slice(0, 5).map((ex) => (
@@ -580,40 +638,92 @@ export default function WorkoutHistoryPage() {
                         {ex}
                       </span>
                     ))}
-                    {exNames.length > 5 && (
-                      <span className="text-[10px]" style={{ color: '#5e5479' }}>+{exNames.length - 5}</span>
+                    {exNames.length > 5 && <span className="text-[10px]" style={{ color: '#5e5479' }}>+{exNames.length - 5}</span>}
+                  </div>
+                )}
+
+                {/* Expanded: sets table */}
+                {open && (
+                  <div style={{ borderTop: '1px solid rgba(139,92,246,0.1)' }}>
+                    {w.sets.length > 0 && (
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm min-w-[340px]">
+                          <thead>
+                            <tr style={{ borderBottom: '1px solid rgba(139,92,246,0.08)' }}>
+                              {['Esercizio', 'S', 'Reps', 'kg', 'RPE'].map((h, i) => (
+                                <th key={h} className={`py-2 text-[10px] uppercase tracking-wide font-semibold ${i === 0 ? 'text-left px-4' : 'text-right px-2'}`}
+                                  style={{ color: '#4a4268' }}>{h}</th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {w.sets.map((s) => (
+                              <tr key={s.id} style={{ borderBottom: '1px solid rgba(139,92,246,0.05)' }}>
+                                <td className="py-2 px-4 text-sm" style={{ color: '#c4b5fd' }}>{s.exercise_name}</td>
+                                <td className="py-2 px-2 text-right font-mono text-xs" style={{ color: '#5e5479' }}>{s.set_number}</td>
+                                <td className="py-2 px-2 text-right font-mono text-sm font-semibold" style={{ color: '#ede9fe' }}>{s.reps ?? '—'}</td>
+                                <td className="py-2 px-2 text-right font-mono text-sm font-semibold" style={{ color: '#ede9fe' }}>{s.weight_kg ?? '—'}</td>
+                                <td className="py-2 px-2 text-right font-mono text-xs" style={{ color: '#8b7faa' }}>{s.rpe ?? '—'}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
                     )}
-                  </div>
-                )}
+                    {w.sets.length === 0 && (
+                      <p className="px-4 py-3 text-xs" style={{ color: '#5e5479' }}>Nessuna serie loggata.</p>
+                    )}
 
-                {open && w.sets.length > 0 && (
-                  <div className="overflow-x-auto" style={{ borderTop: '1px solid rgba(139,92,246,0.1)' }}>
-                    <table className="w-full text-sm min-w-[340px]">
-                      <thead>
-                        <tr style={{ borderBottom: '1px solid rgba(139,92,246,0.08)' }}>
-                          {['Esercizio', 'S', 'Reps', 'kg', 'RPE'].map((h, i) => (
-                            <th key={h} className={`py-2 text-[10px] uppercase tracking-wide font-semibold ${i === 0 ? 'text-left px-4' : 'text-right px-2'}`}
-                              style={{ color: '#4a4268' }}>{h}</th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {w.sets.map((s) => (
-                          <tr key={s.id} style={{ borderBottom: '1px solid rgba(139,92,246,0.05)' }}>
-                            <td className="py-2 px-4 text-sm" style={{ color: '#c4b5fd' }}>{s.exercise_name}</td>
-                            <td className="py-2 px-2 text-right font-mono text-xs" style={{ color: '#5e5479' }}>{s.set_number}</td>
-                            <td className="py-2 px-2 text-right font-mono text-sm font-semibold" style={{ color: '#ede9fe' }}>{s.reps ?? '—'}</td>
-                            <td className="py-2 px-2 text-right font-mono text-sm font-semibold" style={{ color: '#ede9fe' }}>{s.weight_kg ?? '—'}</td>
-                            <td className="py-2 px-2 text-right font-mono text-xs" style={{ color: '#8b7faa' }}>{s.rpe ?? '—'}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                    {/* Add exercise section */}
+                    <div className="px-4 py-3" style={{ borderTop: '1px solid rgba(139,92,246,0.08)' }}>
+                      {!isAdding ? (
+                        <button
+                          onClick={() => { setAddingTo(w.id); setAddExercise('') }}
+                          className="text-xs font-semibold flex items-center gap-1.5 transition-colors"
+                          style={{ color: '#7c3aed' }}
+                        >
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                            <path d="M12 5v14M5 12h14" />
+                          </svg>
+                          Aggiungi esercizio
+                        </button>
+                      ) : (
+                        <form onSubmit={(e) => handleAddSet(e, w.id)} className="space-y-2">
+                          <input
+                            type="text"
+                            value={addExercise}
+                            onChange={(e) => setAddExercise(e.target.value)}
+                            placeholder="Nome esercizio (es. Alzate laterali)"
+                            required
+                            className="inp"
+                            autoFocus
+                          />
+                          <div className="grid grid-cols-3 gap-2">
+                            <div>
+                              <p className="text-[10px] mb-1" style={{ color: '#6b5f8a' }}>Reps</p>
+                              <input type="number" value={addReps} onChange={(e) => setAddReps(e.target.value)} placeholder="12" className="inp" />
+                            </div>
+                            <div>
+                              <p className="text-[10px] mb-1" style={{ color: '#6b5f8a' }}>Peso (kg)</p>
+                              <input type="number" step="0.5" value={addWeight} onChange={(e) => setAddWeight(e.target.value)} placeholder="10" className="inp" />
+                            </div>
+                            <div>
+                              <p className="text-[10px] mb-1" style={{ color: '#6b5f8a' }}>RPE</p>
+                              <input type="number" min="1" max="10" value={addRpe} onChange={(e) => setAddRpe(e.target.value)} placeholder="8" className="inp" />
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <button type="submit" disabled={addingSet || !addExercise.trim()} className="btn-primary flex-1 text-sm py-2">
+                              {addingSet ? 'Salvataggio...' : 'Log serie'}
+                            </button>
+                            <button type="button" onClick={() => setAddingTo(null)} className="btn-ghost text-sm px-4 py-2">
+                              Annulla
+                            </button>
+                          </div>
+                        </form>
+                      )}
+                    </div>
                   </div>
-                )}
-
-                {open && w.sets.length === 0 && (
-                  <p className="px-4 pb-3 text-xs" style={{ color: '#5e5479' }}>Nessuna serie loggata.</p>
                 )}
               </div>
             )
