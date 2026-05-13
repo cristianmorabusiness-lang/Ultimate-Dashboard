@@ -23,7 +23,7 @@ export async function PUT(request: Request) {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await request.json()
-  const { height_cm, birth_date, sex, goal_phase, tdee_kcal, protein_g, carbs_g, fat_g } = body
+  const { height_cm, birth_date, sex, goal_phase, tdee_kcal, protein_g, carbs_g, fat_g, wake_time, workout_start, workout_end } = body
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { error } = await supabase.from('user_profile').upsert(
@@ -37,6 +37,9 @@ export async function PUT(request: Request) {
       protein_g: protein_g || null,
       carbs_g: carbs_g || null,
       fat_g: fat_g || null,
+      wake_time: wake_time || null,
+      workout_start: workout_start || null,
+      workout_end: workout_end || null,
       updated_at: new Date().toISOString(),
     } as any,
     { onConflict: 'user_id' }

@@ -15,6 +15,9 @@ export type Database = {
           protein_g: number | null
           carbs_g: number | null
           fat_g: number | null
+          wake_time: string | null
+          workout_start: string | null
+          workout_end: string | null
           created_at: string
           updated_at: string
         }
@@ -29,6 +32,9 @@ export type Database = {
           protein_g?: number | null
           carbs_g?: number | null
           fat_g?: number | null
+          wake_time?: string | null
+          workout_start?: string | null
+          workout_end?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -41,6 +47,9 @@ export type Database = {
           protein_g?: number | null
           carbs_g?: number | null
           fat_g?: number | null
+          wake_time?: string | null
+          workout_start?: string | null
+          workout_end?: string | null
           updated_at?: string
         }
         Relationships: []

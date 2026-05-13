@@ -11,6 +11,9 @@ interface Profile {
   protein_g: number | null
   carbs_g: number | null
   fat_g: number | null
+  wake_time: string | null
+  workout_start: string | null
+  workout_end: string | null
 }
 
 const PHASES = [
@@ -222,6 +225,41 @@ export default function ProfilePage() {
                 </div>
               </button>
             ))}
+          </div>
+        </div>
+
+        {/* Routine */}
+        <div className="card p-5 space-y-4">
+          <p className="section-label">Routine Giornaliera</p>
+          <p className="text-xs" style={{ color: '#6b5f8a' }}>Usata dall&apos;AI per contestualizzare i consigli</p>
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <label className="block text-xs mb-1.5" style={{ color: '#8b7faa' }}>Sveglia tipica</label>
+              <input
+                type="time"
+                value={profile.wake_time ?? ''}
+                onChange={(e) => set('wake_time', e.target.value || null)}
+                className="inp"
+              />
+            </div>
+            <div>
+              <label className="block text-xs mb-1.5" style={{ color: '#8b7faa' }}>Inizio allenamento</label>
+              <input
+                type="time"
+                value={profile.workout_start ?? ''}
+                onChange={(e) => set('workout_start', e.target.value || null)}
+                className="inp"
+              />
+            </div>
+            <div>
+              <label className="block text-xs mb-1.5" style={{ color: '#8b7faa' }}>Fine allenamento</label>
+              <input
+                type="time"
+                value={profile.workout_end ?? ''}
+                onChange={(e) => set('workout_end', e.target.value || null)}
+                className="inp"
+              />
+            </div>
           </div>
         </div>
 
