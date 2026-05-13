@@ -34,6 +34,11 @@ const SESSION_TYPES = [
   { key: 'Torso C', label: 'Torso C', color: '#a855f7', bg: 'rgba(168,85,247,0.15)' },
 ]
 
+function findSessionType(title: string | null | undefined) {
+  if (!title) return undefined
+  return SESSION_TYPES.find((s) => s.key.toLowerCase() === title.toLowerCase())
+}
+
 const DAY_LABELS = ['L', 'M', 'M', 'G', 'V', 'S', 'D']
 
 function localToday() {
@@ -223,7 +228,7 @@ export default function WorkoutHistoryPage() {
 
   function sessionColor(workout: WorkoutEntry | null) {
     if (!workout) return null
-    return SESSION_TYPES.find((s) => s.key === workout.title)?.color ?? '#fb923c'
+    return findSessionType(workout.title)?.color ?? '#fb923c'
   }
 
   return (
@@ -543,7 +548,7 @@ export default function WorkoutHistoryPage() {
             <div className="card p-4 space-y-3">
               <p className="section-label">Sessioni per tipo</p>
               {SESSION_TYPES.map((s) => {
-                const count = workouts.filter((w) => w.title === s.key).length
+                const count = workouts.filter((w) => w.title?.toLowerCase() === s.key.toLowerCase()).length
                 const pct = totalSessions > 0 ? count / totalSessions : 0
                 return (
                   <div key={s.key}>
@@ -581,7 +586,7 @@ export default function WorkoutHistoryPage() {
           {workouts.map((w) => {
             const open = expanded.has(w.id)
             const exNames = [...new Set(w.sets.map((s) => s.exercise_name))]
-            const sColor = SESSION_TYPES.find((s) => s.key === w.title)?.color
+            const sColor = findSessionType(w.title)?.color
             const isAdding = addingTo === w.id
             return (
               <div key={w.id} className="card overflow-hidden">
