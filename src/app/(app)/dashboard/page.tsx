@@ -5,6 +5,7 @@ import { WeightSparkline } from '@/components/dashboard/WeightSparkline'
 import { PhaseBadge } from '@/components/dashboard/PhaseBadge'
 import { AISummaryCard } from '@/components/dashboard/AISummaryCard'
 import { PhaseDetectTrigger } from '@/components/dashboard/PhaseDetectTrigger'
+import { WhoopSyncButton } from '@/components/dashboard/WhoopSyncButton'
 import Link from 'next/link'
 import type { WhoopDaily, UserProfile, PhaseHistory, MealItem } from '@/lib/database.types'
 import { localDate, daysAgo } from '@/lib/date'
@@ -74,7 +75,10 @@ export default async function DashboardPage() {
           </h1>
           <p className="text-sm mt-0.5 capitalize" style={{ color: '#6b5f8a' }}>{dateStr}</p>
         </div>
-        {phase && <PhaseBadge phase={phase.phase} confidence={phase.confidence ?? 0} />}
+        <div className="flex flex-col items-end gap-2">
+          {phase && <PhaseBadge phase={phase.phase} confidence={phase.confidence ?? 0} />}
+          <WhoopSyncButton lastSyncedAt={whoop?.synced_at ?? null} />
+        </div>
       </div>
 
       {/* Top grid */}
