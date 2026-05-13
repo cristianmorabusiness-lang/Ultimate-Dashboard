@@ -1,6 +1,6 @@
 'use strict'
 
-// WHOOP daily sync — runs via GitHub Actions cron at 02:00 UTC
+// WHOOP daily sync — runs via GitHub Actions cron at 08:00 UTC (10:00 Italy)
 // Refresh token is persisted in Supabase app_config table (key: whoop_refresh_token)
 // Falls back to WHOOP_REFRESH_TOKEN env var on first run
 
@@ -9,6 +9,11 @@ const ws = require('ws')
 
 const WHOOP_TOKEN_URL = 'https://api.prod.whoop.com/oauth/oauth2/token'
 const WHOOP_API = 'https://api.prod.whoop.com/developer/v2'
+const TZ = 'Europe/Rome'
+
+function toItalyDate(isoString) {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: TZ }).format(new Date(isoString))
+}
 
 const required = ['WHOOP_CLIENT_ID', 'WHOOP_CLIENT_SECRET', 'SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY']
 required.forEach((key) => {
@@ -45,16 +50,18 @@ async function saveRefreshToken(token) {
 }
 
 async function refreshToken(currentToken) {
+  const params = {
+    grant_type: 'refresh_token',
+    client_id: process.env.WHOOP_CLIENT_ID,
+    client_secret: process.env.WHOOP_CLIENT_SECRET,
+    refresh_token: currentToken,
+    redirect_uri: process.env.WHOOP_REDIRECT_URI || 'https://www.ultimatedashboards.com/auth/whoop/callback',
+    scope: 'offline read:recovery read:sleep read:workout read:cycles read:body_measurement',
+  }
   const res = await fetch(WHOOP_TOKEN_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      grant_type: 'refresh_token',
-      client_id: process.env.WHOOP_CLIENT_ID,
-      client_secret: process.env.WHOOP_CLIENT_SECRET,
-      refresh_token: currentToken,
-      scope: 'offline read:recovery read:sleep read:workout read:cycles read:body_measurement',
-    }),
+    body: new URLSearchParams(params),
   })
   if (!res.ok) throw new Error(`Token refresh failed: ${res.status} — ${await res.text()}`)
   return res.json()
@@ -113,7 +120,7 @@ async function main() {
 
     return {
       user_id: userId,
-      cycle_date: cycle.start.slice(0, 10),
+      cycle_date: toItalyDate(cycle.end ?? cycle.start),
       cycle_id: cycle.id,
       recovery_score: recovery?.score?.recovery_score ?? null,
       hrv_rmssd_ms: recovery?.score?.hrv_rmssd_milli ?? null,

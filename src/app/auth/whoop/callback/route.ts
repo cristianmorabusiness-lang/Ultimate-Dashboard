@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { createClient as createSupabaseServiceClient } from '@supabase/supabase-js'
 
 const WHOOP_TOKEN_URL = 'https://api.prod.whoop.com/oauth/oauth2/token'
 
@@ -47,7 +48,21 @@ export async function GET(request: Request) {
     const accessToken: string = tokens.access_token ?? ''
     const scope: string = tokens.scope ?? ''
 
-    return htmlResponse(successPage(refreshToken, accessToken, scope))
+    // Auto-save refresh token to Supabase so the nightly sync picks it up immediately
+    let savedToSupabase = false
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    if (supabaseUrl && serviceKey && refreshToken) {
+      const admin = createSupabaseServiceClient(supabaseUrl, serviceKey, {
+        auth: { persistSession: false },
+      })
+      const { error: upsertErr } = await admin
+        .from('app_config')
+        .upsert({ key: 'whoop_refresh_token', value: refreshToken, updated_at: new Date().toISOString() })
+      savedToSupabase = !upsertErr
+    }
+
+    return htmlResponse(successPage(refreshToken, accessToken, scope, savedToSupabase))
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
     return htmlResponse(errorPage(`Errore di rete: ${msg}`))
@@ -60,7 +75,21 @@ function htmlResponse(body: string) {
   })
 }
 
-function successPage(refreshToken: string, accessToken: string, scope: string) {
+function successPage(refreshToken: string, accessToken: string, scope: string, savedToSupabase: boolean) {
+  const savedBanner = savedToSupabase
+    ? `<div style="background:#052e16;border:1px solid #166534;border-radius:8px;padding:1rem;margin-bottom:1.5rem;color:#4ade80;font-size:0.9rem;">
+        ✓ Refresh token salvato automaticamente su Supabase. Il sync notturno è pronto.
+       </div>`
+    : `<div class="warning">
+        ⚠️ Salvataggio automatico su Supabase non riuscito. Copia il Refresh Token e aggiorna manualmente il secret GitHub <code>WHOOP_REFRESH_TOKEN</code>.
+       </div>`
+
+  const nextSteps = savedToSupabase
+    ? `<div class="step"><div class="step-num">1</div><p>Vai su GitHub Actions → <strong>WHOOP Daily Sync</strong> → <strong>Run workflow</strong> per testare il primo sync.</p></div>
+       <div class="step"><div class="step-num">2</div><p>Controlla la dashboard — i dati WHOOP appariranno dopo il sync.</p></div>`
+    : `<div class="step"><div class="step-num">1</div><p>Vai su GitHub → <strong>Settings → Secrets → Actions</strong> → aggiorna <code>WHOOP_REFRESH_TOKEN</code>.</p></div>
+       <div class="step"><div class="step-num">2</div><p>Esegui manualmente il workflow <code>whoop-sync.yml</code>.</p></div>`
+
   return `<!DOCTYPE html>
 <html lang="it">
 <head>
@@ -72,9 +101,9 @@ function successPage(refreshToken: string, accessToken: string, scope: string) {
     body { font-family: system-ui, sans-serif; background: #0a0a0a; color: #f0f0f0; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 2rem; }
     .card { background: #111; border: 1px solid #222; border-radius: 16px; padding: 2.5rem; max-width: 680px; width: 100%; }
     h1 { font-size: 1.5rem; margin-bottom: 0.5rem; color: #4ade80; }
-    .subtitle { color: #888; margin-bottom: 2rem; font-size: 0.9rem; }
+    .subtitle { color: #888; margin-bottom: 1.5rem; font-size: 0.9rem; }
     h2 { font-size: 1rem; color: #aaa; margin-bottom: 0.5rem; margin-top: 1.5rem; }
-    .token-box { background: #0d0d0d; border: 1px solid #333; border-radius: 8px; padding: 1rem; font-family: monospace; font-size: 0.8rem; word-break: break-all; color: #7dd3fc; cursor: pointer; position: relative; }
+    .token-box { background: #0d0d0d; border: 1px solid #333; border-radius: 8px; padding: 1rem; font-family: monospace; font-size: 0.8rem; word-break: break-all; color: #7dd3fc; }
     .copy-btn { background: #1d4ed8; color: white; border: none; border-radius: 6px; padding: 0.4rem 0.8rem; font-size: 0.8rem; cursor: pointer; margin-top: 0.5rem; }
     .copy-btn:hover { background: #2563eb; }
     .steps { margin-top: 2rem; border-top: 1px solid #222; padding-top: 1.5rem; }
@@ -82,48 +111,34 @@ function successPage(refreshToken: string, accessToken: string, scope: string) {
     .step-num { background: #1d4ed8; color: white; border-radius: 50%; width: 1.6rem; height: 1.6rem; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; flex-shrink: 0; margin-top: 0.1rem; }
     .step p { font-size: 0.9rem; color: #ccc; line-height: 1.5; }
     code { background: #1a1a1a; padding: 0.1rem 0.3rem; border-radius: 4px; font-size: 0.85em; color: #f0abfc; }
-    .warning { background: #1c1000; border: 1px solid #78350f; border-radius: 8px; padding: 1rem; margin-top: 1.5rem; font-size: 0.85rem; color: #fbbf24; }
+    .warning { background: #1c1000; border: 1px solid #78350f; border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem; font-size: 0.85rem; color: #fbbf24; }
+    .dashboard-btn { display:inline-block; margin-top:1.5rem; background:#7c3aed; color:white; padding:0.6rem 1.4rem; border-radius:8px; text-decoration:none; font-size:0.9rem; }
+    .dashboard-btn:hover { background:#6d28d9; }
   </style>
 </head>
 <body>
   <div class="card">
     <h1>✓ WHOOP Connesso con successo!</h1>
-    <p class="subtitle">Autorizzazione completata. Scope: ${scope}</p>
+    <p class="subtitle">Autorizzazione completata · Scope: ${scope}</p>
 
-    <h2>REFRESH TOKEN (salvalo subito)</h2>
+    ${savedBanner}
+
+    <h2>Refresh Token (backup)</h2>
     <div class="token-box" id="refresh">${refreshToken}</div>
-    <button class="copy-btn" onclick="copy('refresh', this)">Copia Refresh Token</button>
-
-    <h2>ACCESS TOKEN (temporaneo, solo per test)</h2>
-    <div class="token-box" id="access">${accessToken}</div>
-    <button class="copy-btn" onclick="copy('access', this)">Copia Access Token</button>
-
-    <div class="warning">
-      ⚠️ Questa pagina non salva i token da nessuna parte. Copia il Refresh Token ora — non lo rivedrai.
-    </div>
+    <button class="copy-btn" onclick="copy('refresh', this)">Copia</button>
 
     <div class="steps">
       <h2 style="margin-top:0">Prossimi passi</h2>
-      <div class="step">
-        <div class="step-num">1</div>
-        <p>Vai su GitHub → il tuo repo → <strong>Settings → Secrets and variables → Actions</strong></p>
-      </div>
-      <div class="step">
-        <div class="step-num">2</div>
-        <p>Aggiorna il secret <code>WHOOP_REFRESH_TOKEN</code> con il valore copiato sopra.</p>
-      </div>
-      <div class="step">
-        <div class="step-num">3</div>
-        <p>Esegui manualmente il workflow <code>whoop-sync.yml</code> per testare il primo sync.</p>
-      </div>
+      ${nextSteps}
     </div>
+
+    <a class="dashboard-btn" href="/">Vai alla Dashboard</a>
   </div>
   <script>
     function copy(id, btn) {
-      const text = document.getElementById(id).textContent
-      navigator.clipboard.writeText(text).then(() => {
+      navigator.clipboard.writeText(document.getElementById(id).textContent).then(() => {
         btn.textContent = 'Copiato!'
-        setTimeout(() => btn.textContent = id === 'refresh' ? 'Copia Refresh Token' : 'Copia Access Token', 2000)
+        setTimeout(() => btn.textContent = 'Copia', 2000)
       })
     }
   </script>

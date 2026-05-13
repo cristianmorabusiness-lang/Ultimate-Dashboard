@@ -25,8 +25,13 @@ export default async function DashboardPage() {
   const today = localDate()
   const fourteenDaysAgo = daysAgo(14)
 
+  const yesterday = daysAgo(1)
   const [whoopRes, weightRes, profileRes, phaseRes, mealsRes] = await Promise.all([
-    supabase.from('whoop_daily').select('*').eq('user_id', user.id).eq('cycle_date', today).maybeSingle(),
+    supabase.from('whoop_daily').select('*').eq('user_id', user.id)
+      .in('cycle_date', [today, yesterday])
+      .order('cycle_date', { ascending: false })
+      .limit(1)
+      .maybeSingle(),
     supabase.from('weight_log').select('logged_date, weight_kg').eq('user_id', user.id).gte('logged_date', fourteenDaysAgo).order('logged_date', { ascending: true }),
     supabase.from('user_profile').select('*').eq('user_id', user.id).maybeSingle(),
     supabase.from('phase_history').select('*').eq('user_id', user.id).order('detected_at', { ascending: false }).limit(1).maybeSingle(),
