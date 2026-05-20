@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 
 interface WeeklySummary {
   content: string
@@ -9,29 +9,62 @@ interface WeeklySummary {
   created_at: string
 }
 
-function getLastMonday(): string {
-  const weekday = new Intl.DateTimeFormat('en-US', { timeZone: 'Europe/Rome', weekday: 'long' }).format(new Date())
+const TZ = 'Europe/Rome'
+
+function fmtDate(d: Date): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: TZ }).format(d)
+}
+
+function getMondayOfThisWeek(): string {
+  const weekday = new Intl.DateTimeFormat('en-US', { timeZone: TZ, weekday: 'long' }).format(new Date())
   const dayMap: Record<string, number> = { Sunday: 6, Monday: 0, Tuesday: 1, Wednesday: 2, Thursday: 3, Friday: 4, Saturday: 5 }
   const daysBack = dayMap[weekday] ?? 0
-  const d = new Date(Date.now() - daysBack * 86400000)
-  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Rome' }).format(d)
+  return fmtDate(new Date(Date.now() - daysBack * 86400000))
+}
+
+function shiftWeek(mondayStr: string, weeks: number): string {
+  const d = new Date(mondayStr + 'T12:00:00Z')
+  d.setUTCDate(d.getUTCDate() + weeks * 7)
+  return fmtDate(d)
+}
+
+function weekLabel(mondayStr: string): string {
+  const start = new Date(mondayStr + 'T12:00:00Z')
+  const end = new Date(start.getTime() + 6 * 86400000)
+  const startFmt = start.toLocaleDateString('it-IT', { day: 'numeric', month: 'short' })
+  const endFmt = end.toLocaleDateString('it-IT', { day: 'numeric', month: 'short', year: 'numeric' })
+  return `${startFmt} – ${endFmt}`
 }
 
 export default function WeeklyReportPage() {
+  const [currentMonday, setCurrentMonday] = useState<string>(getMondayOfThisWeek())
   const [summary, setSummary] = useState<WeeklySummary | null>(null)
   const [loading, setLoading] = useState(true)
   const [generating, setGenerating] = useState(false)
   const [error, setError] = useState('')
 
-  const lastMonday = getLastMonday()
-  const weekLabel = new Date(lastMonday).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' })
+  const thisWeekMonday = getMondayOfThisWeek()
+  const isCurrentWeek = currentMonday === thisWeekMonday
+  const isFutureWeek = currentMonday > thisWeekMonday
+
+  const loadSummary = useCallback(async (monday: string) => {
+    setLoading(true)
+    setError('')
+    setSummary(null)
+    try {
+      const res = await fetch(`/api/ai/weekly-report?date=${monday}`)
+      const data = await res.json()
+      if (data.summary) setSummary(data.summary)
+    } catch {
+      setError('Errore di caricamento')
+    } finally {
+      setLoading(false)
+    }
+  }, [])
 
   useEffect(() => {
-    fetch(`/api/ai/weekly-report?date=${lastMonday}`)
-      .then((r) => r.json())
-      .then((data) => { if (data.summary) setSummary(data.summary); setLoading(false) })
-      .catch(() => { setError('Errore di caricamento'); setLoading(false) })
-  }, [lastMonday])
+    loadSummary(currentMonday)
+  }, [currentMonday, loadSummary])
 
   async function generate() {
     setGenerating(true)
@@ -40,13 +73,29 @@ export default function WeeklyReportPage() {
       const res = await fetch('/api/ai/weekly-report', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ date: lastMonday }),
+        body: JSON.stringify({ date: currentMonday }),
       })
       const data = await res.json()
       if (data.summary) setSummary(data.summary)
       else setError(data.error ?? 'Generazione fallita')
-    } catch { setError('Errore di rete') }
-    finally { setGenerating(false) }
+    } catch {
+      setError('Errore di rete')
+    } finally {
+      setGenerating(false)
+    }
+  }
+
+  function goPrev() {
+    setCurrentMonday((m) => shiftWeek(m, -1))
+  }
+
+  function goNext() {
+    if (isCurrentWeek) return
+    setCurrentMonday((m) => shiftWeek(m, 1))
+  }
+
+  function goToday() {
+    setCurrentMonday(thisWeekMonday)
   }
 
   return (
@@ -56,10 +105,57 @@ export default function WeeklyReportPage() {
           <h1 className="font-display text-2xl font-bold tracking-tight" style={{ color: '#ede9fe' }}>
             Report Settimanale
           </h1>
-          <p className="text-sm mt-0.5" style={{ color: '#8b7faa' }}>Settimana del {weekLabel}</p>
+          <p className="text-sm mt-0.5" style={{ color: '#8b7faa' }}>
+            {isCurrentWeek ? 'Settimana corrente' : 'Settimana passata'}
+          </p>
         </div>
-        <button onClick={generate} disabled={generating} className="btn-primary">
+        <button onClick={generate} disabled={generating || isFutureWeek} className="btn-primary">
           {generating ? 'Generazione...' : summary ? 'Rigenera' : 'Genera Report'}
+        </button>
+      </div>
+
+      {/* Week navigation */}
+      <div className="card p-3 flex items-center justify-between gap-2">
+        <button
+          onClick={goPrev}
+          className="px-3 py-1.5 rounded-xl text-sm font-semibold transition-colors"
+          style={{
+            background: 'rgba(124,58,237,0.08)',
+            border: '1px solid rgba(109,40,217,0.2)',
+            color: '#c4b5fd',
+          }}
+          aria-label="Settimana precedente"
+        >
+          ← Precedente
+        </button>
+        <div className="flex flex-col items-center">
+          <p className="text-sm font-semibold" style={{ color: '#ede9fe' }}>
+            {weekLabel(currentMonday)}
+          </p>
+          {!isCurrentWeek && (
+            <button
+              onClick={goToday}
+              className="text-[10px] mt-0.5 underline-offset-2 hover:underline"
+              style={{ color: '#8b7faa' }}
+            >
+              Vai a questa settimana
+            </button>
+          )}
+        </div>
+        <button
+          onClick={goNext}
+          disabled={isCurrentWeek}
+          className="px-3 py-1.5 rounded-xl text-sm font-semibold transition-colors"
+          style={{
+            background: 'rgba(124,58,237,0.08)',
+            border: '1px solid rgba(109,40,217,0.2)',
+            color: isCurrentWeek ? '#4a4268' : '#c4b5fd',
+            opacity: isCurrentWeek ? 0.5 : 1,
+            cursor: isCurrentWeek ? 'not-allowed' : 'pointer',
+          }}
+          aria-label="Settimana successiva"
+        >
+          Successiva →
         </button>
       </div>
 
@@ -71,9 +167,13 @@ export default function WeeklyReportPage() {
 
       {!loading && !summary && !generating && (
         <div className="card p-14 text-center space-y-3">
-          <p className="text-base" style={{ color: '#b8add2' }}>Nessun report per questa settimana.</p>
+          <p className="text-base" style={{ color: '#b8add2' }}>
+            Nessun report per questa settimana.
+          </p>
           <p className="text-sm" style={{ color: '#8b7faa' }}>
-            Clicca &ldquo;Genera Report&rdquo; per un&apos;analisi approfondita con Claude Opus.
+            {isFutureWeek
+              ? 'Settimana futura — non disponibile.'
+              : 'Clicca “Genera Report” per un’analisi approfondita con Claude Opus.'}
           </p>
         </div>
       )}
@@ -82,8 +182,11 @@ export default function WeeklyReportPage() {
         <div className="card p-14 text-center space-y-2">
           <div className="flex justify-center gap-1.5 mb-3">
             {[0, 1, 2].map((i) => (
-              <div key={i} className="w-2 h-2 rounded-full animate-bounce"
-                style={{ background: '#8b5cf6', animationDelay: `${i * 0.15}s` }} />
+              <div
+                key={i}
+                className="w-2 h-2 rounded-full animate-bounce"
+                style={{ background: '#8b5cf6', animationDelay: `${i * 0.15}s` }}
+              />
             ))}
           </div>
           <p className="text-sm" style={{ color: '#b8add2' }}>
@@ -97,14 +200,26 @@ export default function WeeklyReportPage() {
 
       {summary && !generating && (
         <div className="card p-6">
-          <pre className="text-sm leading-relaxed whitespace-pre-wrap font-sans" style={{ color: '#b8add2' }}>
+          <pre
+            className="text-sm leading-relaxed whitespace-pre-wrap font-sans"
+            style={{ color: '#b8add2' }}
+          >
             {summary.content}
           </pre>
-          <div className="mt-6 pt-4 flex items-center justify-between"
-            style={{ borderTop: '1px solid rgba(139,92,246,0.15)' }}>
-            <span className="font-mono text-xs" style={{ color: '#5e5479' }}>{summary.model_used}</span>
+          <div
+            className="mt-6 pt-4 flex items-center justify-between"
+            style={{ borderTop: '1px solid rgba(139,92,246,0.15)' }}
+          >
+            <span className="font-mono text-xs" style={{ color: '#5e5479' }}>
+              {summary.model_used}
+            </span>
             <span className="text-xs" style={{ color: '#5e5479' }}>
-              {new Date(summary.created_at).toLocaleDateString('it-IT', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+              {new Date(summary.created_at).toLocaleDateString('it-IT', {
+                day: 'numeric',
+                month: 'short',
+                hour: '2-digit',
+                minute: '2-digit',
+              })}
             </span>
           </div>
         </div>

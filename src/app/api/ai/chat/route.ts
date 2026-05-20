@@ -11,8 +11,8 @@ type WeightLite = Pick<WeightLog, 'logged_date' | 'weight_kg' | 'body_fat_pct' |
 type WorkoutLite = Pick<Workout, 'id' | 'logged_date' | 'workout_type' | 'title' | 'duration_min' | 'notes'>
 type WorkoutSetLite = Pick<WorkoutSet, 'workout_id' | 'exercise_name' | 'set_number' | 'reps' | 'weight_kg' | 'duration_sec' | 'rpe'>
 type WhoopLite = Pick<WhoopDaily, 'cycle_date' | 'recovery_score' | 'hrv_rmssd_ms' | 'resting_hr_bpm' | 'sleep_performance' | 'sleep_duration_min' | 'sleep_disturbances' | 'day_strain' | 'energy_burnt_kcal'>
-type MealItemLite = { food_name: string; quantity_g: number; kcal: number; protein_g: number; carbs_g: number; fat_g: number; fiber_g: number | null }
-type MealLite = { id: string; logged_date: string; meal_name: string; meal_order: number; notes: string | null; meal_items: MealItemLite[] }
+type MealItemLite = { meal_id: string; food_name: string; quantity_g: number; kcal: number; protein_g: number; carbs_g: number; fat_g: number; fiber_g: number | null }
+type MealLite = { id: string; logged_date: string; meal_name: string; meal_order: number; notes: string | null }
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
 
@@ -87,7 +87,7 @@ export async function POST(request: Request) {
       .select('id, logged_date, workout_type, title, duration_min, notes')
       .eq('user_id', user.id).gte('logged_date', ago14).order('logged_date', { ascending: false }),
     supabase.from('meals')
-      .select('id, logged_date, meal_name, meal_order, notes, meal_items(food_name, quantity_g, kcal, protein_g, carbs_g, fat_g, fiber_g)')
+      .select('id, logged_date, meal_name, meal_order, notes')
       .eq('user_id', user.id).gte('logged_date', ago7).order('logged_date', { ascending: false }).order('meal_order', { ascending: true }),
     supabase.from('whoop_daily')
       .select('cycle_date, recovery_score, hrv_rmssd_ms, resting_hr_bpm, sleep_performance, sleep_duration_min, sleep_disturbances, day_strain, energy_burnt_kcal')
@@ -115,6 +115,20 @@ export async function POST(request: Request) {
     return acc
   }, {})
 
+  // Fetch meal_items separately (more reliable than PostgREST embedded relationship)
+  const mealIds = meals.map(m => m.id)
+  const itemsRes = mealIds.length > 0
+    ? await supabase.from('meal_items')
+        .select('meal_id, food_name, quantity_g, kcal, protein_g, carbs_g, fat_g, fiber_g')
+        .in('meal_id', mealIds)
+    : { data: [] }
+  const mealItems = (itemsRes.data ?? []) as MealItemLite[]
+  const itemsByMeal = mealItems.reduce<Record<string, MealItemLite[]>>((acc, it) => {
+    if (!acc[it.meal_id]) acc[it.meal_id] = []
+    acc[it.meal_id]!.push(it)
+    return acc
+  }, {})
+
   // --- DERIVED METRICS ---
   const age = ageFromBirthDate(profile?.birth_date)
   const latestWeight = weights[0]?.weight_kg
@@ -126,12 +140,12 @@ export async function POST(request: Request) {
   const dailyMacros = meals.reduce<Record<string, { kcal: number; protein: number; carbs: number; fat: number; fiber: number; meals: number }>>((acc, m) => {
     if (!acc[m.logged_date]) acc[m.logged_date] = { kcal: 0, protein: 0, carbs: 0, fat: 0, fiber: 0, meals: 0 }
     acc[m.logged_date]!.meals++
-    for (const item of m.meal_items ?? []) {
-      acc[m.logged_date]!.kcal += item.kcal
-      acc[m.logged_date]!.protein += item.protein_g
-      acc[m.logged_date]!.carbs += item.carbs_g
-      acc[m.logged_date]!.fat += item.fat_g
-      acc[m.logged_date]!.fiber += item.fiber_g ?? 0
+    for (const item of itemsByMeal[m.id] ?? []) {
+      acc[m.logged_date]!.kcal += Number(item.kcal)
+      acc[m.logged_date]!.protein += Number(item.protein_g)
+      acc[m.logged_date]!.carbs += Number(item.carbs_g)
+      acc[m.logged_date]!.fat += Number(item.fat_g)
+      acc[m.logged_date]!.fiber += Number(item.fiber_g ?? 0)
     }
     return acc
   }, {})
@@ -177,8 +191,8 @@ export async function POST(request: Request) {
   const todayMealLines = todayMeals.length === 0
     ? 'Nessun pasto registrato oggi'
     : todayMeals.map(m => {
-        const items = (m.meal_items ?? []).map(i =>
-          `    · ${i.food_name} ${i.quantity_g}g (${Math.round(i.kcal)} kcal, P${round(i.protein_g, 0)}/C${round(i.carbs_g, 0)}/F${round(i.fat_g, 0)})`
+        const items = (itemsByMeal[m.id] ?? []).map(i =>
+          `    · ${i.food_name} ${i.quantity_g}g (${Math.round(Number(i.kcal))} kcal, P${round(Number(i.protein_g), 0)}/C${round(Number(i.carbs_g), 0)}/F${round(Number(i.fat_g), 0)})`
         ).join('\n')
         return `  ${m.meal_name}${m.notes ? ` [${m.notes}]` : ''}:\n${items || '    (vuoto)'}`
       }).join('\n')
