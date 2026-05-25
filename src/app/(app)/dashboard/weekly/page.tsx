@@ -75,11 +75,18 @@ export default function WeeklyReportPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ date: currentMonday }),
       })
-      const data = await res.json()
-      if (data.summary) setSummary(data.summary)
-      else setError(data.error ?? 'Generazione fallita')
-    } catch {
-      setError('Errore di rete')
+      const ctype = res.headers.get('content-type') ?? ''
+      if (ctype.includes('application/json')) {
+        const data = await res.json()
+        if (data.summary) setSummary(data.summary)
+        else setError(data.error ?? `HTTP ${res.status}: risposta vuota`)
+      } else {
+        const text = await res.text()
+        const snippet = text.slice(0, 200).replace(/<[^>]+>/g, '').trim()
+        setError(`HTTP ${res.status} (${ctype || 'no content-type'}): ${snippet || 'no body'}`)
+      }
+    } catch (e) {
+      setError(`Errore di rete: ${e instanceof Error ? e.message : 'sconosciuto'}`)
     } finally {
       setGenerating(false)
     }

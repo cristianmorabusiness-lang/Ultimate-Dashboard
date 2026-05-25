@@ -6,6 +6,9 @@ import type { Phase, WhoopDaily, WeightLog, UserProfile, PhaseHistory, Meal, Mea
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
 
+// Vercel Hobby: max 60s. Opus on a full week of context can take 20-40s.
+export const maxDuration = 60
+
 const WEEKLY_SYSTEM = `Sei un analista di performance e coach di natural bodybuilding. Ricevi una settimana completa di dati biometrici, allenamento e nutrizione e produci una sintesi settimanale strutturata. Sii analitico, cita numeri specifici, e mantieni ogni sezione concisa ma incisiva. Evita frasi di riempimento.
 
 Formatta la risposta come testo semplice con queste sezioni (usa il prefisso ##):
