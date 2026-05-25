@@ -183,25 +183,36 @@ ${workoutLines}`
 
     const content = message.content[0].type === 'text' ? message.content[0].text : ''
 
+    if (!content) {
+      console.error('AI weekly report: empty content from Anthropic', message)
+      return NextResponse.json({ error: 'AI ha restituito contenuto vuoto' }, { status: 502 })
+    }
+
+    // Build the summary object up front — the response does NOT depend on the DB upsert
+    // succeeding, so a silent insert failure can never produce HTTP 200 with empty body.
+    const summary = {
+      user_id: user.id,
+      summary_date: weekStart,
+      summary_type: 'weekly' as const,
+      model_used: 'claude-opus-4-7',
+      prompt_tokens: message.usage.input_tokens,
+      output_tokens: message.usage.output_tokens,
+      content,
+      created_at: new Date().toISOString(),
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: stored } = await supabase
+    const { data: stored, error: dbError } = await supabase
       .from('ai_summaries')
-      .upsert(
-        {
-          user_id: user.id,
-          summary_date: weekStart,
-          summary_type: 'weekly',
-          model_used: 'claude-opus-4-7',
-          prompt_tokens: message.usage.input_tokens,
-          output_tokens: message.usage.output_tokens,
-          content,
-        } as any,
-        { onConflict: 'user_id,summary_date,summary_type' }
-      )
+      .upsert(summary as any, { onConflict: 'user_id,summary_date,summary_type' })
       .select()
       .single()
 
-    return NextResponse.json({ summary: stored })
+    if (dbError) {
+      console.error('AI weekly report: DB upsert failed:', dbError.message, dbError)
+    }
+
+    return NextResponse.json({ summary: stored ?? summary })
   } catch (err: unknown) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const anyErr = err as any
