@@ -45,8 +45,8 @@ export default async function AnalyticsPage() {
   return (
     <div className="p-4 md:p-6 max-w-5xl mx-auto space-y-4 md:space-y-5">
       <div>
-        <h1 className="font-display text-xl md:text-2xl font-bold tracking-tight" style={{ color: '#ede9fe' }}>Analytics</h1>
-        <p className="text-sm mt-0.5" style={{ color: '#8b7faa' }}>Ultimi 30 giorni</p>
+        <h1 className="font-display text-xl md:text-2xl font-bold tracking-tight" style={{ color: 'var(--text)' }}>Analytics</h1>
+        <p className="text-sm mt-0.5" style={{ color: 'var(--text-muted)' }}>Ultimi 30 giorni</p>
       </div>
 
       {whoop.length > 0 && (
@@ -66,7 +66,7 @@ export default async function AnalyticsPage() {
         <div className="card p-5">
           <div className="flex items-center justify-between mb-4">
             <p className="section-label">Calorie Giornaliere</p>
-            <span className="font-mono text-xs" style={{ color: '#8b7faa' }}>
+            <span className="font-mono text-xs" style={{ color: 'var(--text-muted)' }}>
               Target: {tdee.toLocaleString()} kcal
             </span>
           </div>
@@ -76,8 +76,8 @@ export default async function AnalyticsPage() {
 
       {isEmpty && (
         <div className="card p-16 text-center">
-          <p className="text-base" style={{ color: '#8b7faa' }}>Nessun dato ancora.</p>
-          <p className="text-sm mt-1" style={{ color: '#5e5479' }}>Inizia a loggare pasti, peso e sincronizza WHOOP.</p>
+          <p className="text-base" style={{ color: 'var(--text-secondary)' }}>Nessun dato ancora.</p>
+          <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>Inizia a loggare pasti, peso e sincronizza WHOOP.</p>
         </div>
       )}
     </div>

@@ -112,8 +112,8 @@ function successPage(refreshToken: string, accessToken: string, scope: string, s
     .step p { font-size: 0.9rem; color: #ccc; line-height: 1.5; }
     code { background: #1a1a1a; padding: 0.1rem 0.3rem; border-radius: 4px; font-size: 0.85em; color: #f0abfc; }
     .warning { background: #1c1000; border: 1px solid #78350f; border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem; font-size: 0.85rem; color: #fbbf24; }
-    .dashboard-btn { display:inline-block; margin-top:1.5rem; background:#7c3aed; color:white; padding:0.6rem 1.4rem; border-radius:8px; text-decoration:none; font-size:0.9rem; }
-    .dashboard-btn:hover { background:#6d28d9; }
+    .dashboard-btn { display:inline-block; margin-top:1.5rem; background:#2DD4BF; color:#06201D; padding:0.6rem 1.4rem; border-radius:8px; text-decoration:none; font-size:0.9rem; font-weight:600; }
+    .dashboard-btn:hover { background:#5EEAD4; }
   </style>
 </head>
 <body>

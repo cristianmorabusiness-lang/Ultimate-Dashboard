@@ -179,7 +179,7 @@ export default function LogWorkoutsPage() {
   if (loading) {
     return (
       <div className="p-6 flex items-center justify-center h-48">
-        <p className="text-sm" style={{ color: '#4a4268' }}>Caricamento...</p>
+        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Caricamento...</p>
       </div>
     )
   }
@@ -191,34 +191,32 @@ export default function LogWorkoutsPage() {
   return (
     <div className="p-4 md:p-6 max-w-3xl mx-auto space-y-4 md:space-y-5">
       <div>
-        <h1 className="font-display text-xl md:text-2xl font-bold tracking-tight" style={{ color: '#f1eeff' }}>Workout</h1>
-        <p className="text-sm mt-0.5" style={{ color: '#6b5f8a' }}>{today}</p>
+        <h1 className="font-display text-xl md:text-2xl font-bold tracking-tight" style={{ color: 'var(--text)' }}>Workout</h1>
+        <p className="text-sm mt-0.5" style={{ color: 'var(--text-muted)' }}>{today}</p>
       </div>
 
       {/* New workout */}
       <div className="card p-5 space-y-4">
-        <p className="text-[11px] font-semibold uppercase tracking-widest" style={{ color: '#4a4268' }}>
-          Nuovo workout
-        </p>
+        <p className="section-label">Nuovo workout</p>
         <form onSubmit={createWorkout} className="space-y-3">
           {/* Type selector */}
           <div>
-            <p className="text-xs mb-2" style={{ color: '#6b5f8a' }}>Tipo</p>
+            <p className="text-xs mb-2" style={{ color: 'var(--text-muted)' }}>Tipo</p>
             <div className="flex flex-wrap gap-2">
               {WORKOUT_TYPES.map((t) => (
                 <button
                   key={t.value}
                   type="button"
                   onClick={() => setNewType(t.value)}
-                  className="px-3 py-1.5 rounded-xl text-[13px] transition-all"
+                  className="px-3 py-1.5 rounded-lg text-[13px] transition-all"
                   style={newType === t.value ? {
-                    background: 'rgba(124,58,237,0.15)',
-                    border: '1px solid rgba(124,58,237,0.4)',
-                    color: '#d8b4fe',
+                    background: 'var(--accent-bg)',
+                    border: '1px solid var(--accent-border)',
+                    color: 'var(--accent)',
                   } : {
-                    background: 'rgba(255,255,255,0.02)',
-                    border: '1px solid rgba(109,40,217,0.15)',
-                    color: '#6b5f8a',
+                    background: 'var(--surface-soft)',
+                    border: '1px solid var(--border)',
+                    color: 'var(--text-muted)',
                   }}
                 >
                   {t.label}
@@ -230,23 +228,22 @@ export default function LogWorkoutsPage() {
           {/* Torso Limbs day selector */}
           {isTorsoLimbs ? (
             <div>
-              <p className="text-xs mb-2" style={{ color: '#6b5f8a' }}>Giorno</p>
+              <p className="text-xs mb-2" style={{ color: 'var(--text-muted)' }}>Giorno</p>
               <div className="grid grid-cols-4 gap-2">
                 {TORSO_LIMBS_DAYS.map((day) => (
                   <button
                     key={day}
                     type="button"
                     onClick={() => setSelectedDay(day)}
-                    className="py-2 px-2 rounded-xl text-[12px] font-semibold transition-all text-center"
+                    className="py-2 px-2 rounded-lg text-[12px] font-semibold transition-all text-center"
                     style={selectedDay === day ? {
-                      background: 'rgba(124,58,237,0.2)',
-                      border: '1px solid rgba(124,58,237,0.5)',
-                      color: '#d8b4fe',
-                      boxShadow: '0 0 12px rgba(124,58,237,0.15)',
+                      background: 'var(--accent-bg)',
+                      border: '1px solid var(--accent-border)',
+                      color: 'var(--accent)',
                     } : {
-                      background: 'rgba(255,255,255,0.02)',
-                      border: '1px solid rgba(109,40,217,0.15)',
-                      color: '#6b5f8a',
+                      background: 'var(--surface-soft)',
+                      border: '1px solid var(--border)',
+                      color: 'var(--text-muted)',
                     }}
                   >
                     {day}
@@ -266,18 +263,17 @@ export default function LogWorkoutsPage() {
 
           {/* Preview exercises if template */}
           {isTorsoLimbs && activeExercises.length > 0 && (
-            <div className="rounded-xl overflow-hidden"
-              style={{ border: '1px solid rgba(109,40,217,0.2)' }}>
-              <div className="px-3 py-2" style={{ background: 'rgba(124,58,237,0.07)' }}>
-                <p className="text-[10px] uppercase tracking-widest font-semibold" style={{ color: '#6b5f8a' }}>
+            <div className="rounded-lg overflow-hidden" style={{ border: '1px solid var(--border)' }}>
+              <div className="px-3 py-2" style={{ background: 'var(--surface-soft)' }}>
+                <p className="text-[10px] uppercase tracking-widest font-semibold" style={{ color: 'var(--text-muted)' }}>
                   Esercizi — {selectedDay}
                 </p>
               </div>
-              <div className="divide-y" style={{ borderColor: 'rgba(109,40,217,0.1)' }}>
+              <div className="divide-y" style={{ borderColor: 'var(--divider)' }}>
                 {activeExercises.map((ex) => (
                   <div key={ex.name} className="px-3 py-2 flex items-center justify-between">
-                    <p className="text-sm" style={{ color: '#d8b4fe' }}>{ex.name}</p>
-                    <p className="font-mono text-[11px]" style={{ color: '#6b5f8a' }}>
+                    <p className="text-sm" style={{ color: 'var(--text)' }}>{ex.name}</p>
+                    <p className="font-mono text-[11px]" style={{ color: 'var(--text-muted)' }}>
                       {ex.sets}×{ex.reps} · {ex.rest}
                     </p>
                   </div>
@@ -287,8 +283,8 @@ export default function LogWorkoutsPage() {
           )}
 
           {isTorsoLimbs && activeExercises.length === 0 && (
-            <div className="rounded-xl px-4 py-3 text-sm"
-              style={{ background: 'rgba(124,58,237,0.06)', border: '1px solid rgba(109,40,217,0.2)', color: '#6b5f8a' }}>
+            <div className="rounded-lg px-4 py-3 text-sm"
+              style={{ background: 'var(--surface-soft)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}>
               Inviami la lista degli esercizi per {selectedDay} e la configuro subito.
             </div>
           )}
@@ -301,13 +297,13 @@ export default function LogWorkoutsPage() {
 
       {/* Active workout */}
       {activeWorkout && activeW && (
-        <div className="card p-5 space-y-4"
-          style={{ borderColor: 'rgba(124,58,237,0.4)', boxShadow: '0 0 24px rgba(124,58,237,0.08)' }}>
+        <div className="card p-5 space-y-4 card-active">
           <div className="flex items-center justify-between">
-            <p className="text-sm font-semibold" style={{ color: '#a78bfa' }}>
-              ● {activeW.title ?? activeW.workout_type}
+            <p className="text-sm font-semibold flex items-center gap-1.5" style={{ color: 'var(--accent)' }}>
+              <span className="w-1.5 h-1.5 rounded-full inline-block" style={{ background: 'var(--accent)' }} />
+              {activeW.title ?? activeW.workout_type}
             </p>
-            <button onClick={() => setActiveWorkout(null)} className="text-[11px]" style={{ color: '#4a4268' }}>
+            <button onClick={() => setActiveWorkout(null)} className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
               Chiudi
             </button>
           </div>
@@ -316,20 +312,17 @@ export default function LogWorkoutsPage() {
           {isActiveTemplate && activeTemplateExercises.length > 0 ? (
             <div className="space-y-4">
               {activeTemplateExercises.map((ex) => (
-                <div key={ex.name} className="rounded-xl overflow-hidden"
-                  style={{ border: '1px solid rgba(109,40,217,0.2)' }}>
-                  <div className="px-3 py-2 flex items-center justify-between"
-                    style={{ background: 'rgba(124,58,237,0.06)' }}>
-                    <p className="text-sm font-semibold" style={{ color: '#d8b4fe' }}>{ex.name}</p>
-                    <p className="font-mono text-[11px]" style={{ color: '#6b5f8a' }}>
+                <div key={ex.name} className="rounded-lg overflow-hidden" style={{ border: '1px solid var(--border)' }}>
+                  <div className="px-3 py-2 flex items-center justify-between" style={{ background: 'var(--surface-soft)' }}>
+                    <p className="text-sm font-semibold" style={{ color: 'var(--text)' }}>{ex.name}</p>
+                    <p className="font-mono text-[11px]" style={{ color: 'var(--text-muted)' }}>
                       {ex.sets} serie · {ex.reps} reps · {ex.rest} rec
                     </p>
                   </div>
-                  <div className="p-3 grid gap-2"
-                    style={{ gridTemplateColumns: `repeat(${ex.sets}, 1fr)` }}>
+                  <div className="p-3 grid gap-2" style={{ gridTemplateColumns: `repeat(${ex.sets}, 1fr)` }}>
                     {Array.from({ length: ex.sets }, (_, i) => i + 1).map((s) => (
                       <div key={s} className="space-y-1">
-                        <p className="text-[10px] text-center uppercase tracking-wide" style={{ color: '#4a4268' }}>
+                        <p className="text-[10px] text-center uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
                           Serie {s}
                         </p>
                         <input
@@ -369,15 +362,15 @@ export default function LogWorkoutsPage() {
               />
               <div className="grid grid-cols-3 gap-2">
                 <div>
-                  <p className="text-[10px] mb-1" style={{ color: '#6b5f8a' }}>Reps</p>
+                  <p className="text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>Reps</p>
                   <input type="number" value={reps} onChange={(e) => setReps(e.target.value)} placeholder="8" className="inp" />
                 </div>
                 <div>
-                  <p className="text-[10px] mb-1" style={{ color: '#6b5f8a' }}>Peso (kg)</p>
+                  <p className="text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>Peso (kg)</p>
                   <input type="number" step="0.5" value={weight} onChange={(e) => setWeight(e.target.value)} placeholder="80" className="inp" />
                 </div>
                 <div>
-                  <p className="text-[10px] mb-1" style={{ color: '#6b5f8a' }}>RPE</p>
+                  <p className="text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>RPE</p>
                   <input type="number" min="1" max="10" value={rpe} onChange={(e) => setRpe(e.target.value)} placeholder="8" className="inp" />
                 </div>
               </div>
@@ -389,13 +382,13 @@ export default function LogWorkoutsPage() {
 
           {/* Logged sets */}
           {activeW.sets.length > 0 && !isActiveTemplate && (
-            <div className="rounded-xl overflow-hidden overflow-x-auto" style={{ border: '1px solid rgba(109,40,217,0.15)' }}>
+            <div className="rounded-lg overflow-hidden overflow-x-auto" style={{ border: '1px solid var(--border)' }}>
               <table className="w-full text-sm min-w-[340px]">
                 <thead>
-                  <tr style={{ borderBottom: '1px solid rgba(109,40,217,0.15)' }}>
+                  <tr style={{ borderBottom: '1px solid var(--border)' }}>
                     {['Esercizio', 'Serie', 'Reps', 'kg', 'RPE'].map((h) => (
                       <th key={h} className={`py-2 text-[10px] uppercase tracking-wide font-semibold ${h === 'Esercizio' ? 'text-left px-3' : 'text-right px-2'}`}
-                        style={{ color: '#4a4268' }}>
+                        style={{ color: 'var(--text-muted)' }}>
                         {h}
                       </th>
                     ))}
@@ -403,12 +396,12 @@ export default function LogWorkoutsPage() {
                 </thead>
                 <tbody>
                   {activeW.sets.map((s) => (
-                    <tr key={s.id} style={{ borderBottom: '1px solid rgba(109,40,217,0.07)' }}>
-                      <td className="py-2 px-3 text-sm" style={{ color: '#d8b4fe' }}>{s.exercise_name}</td>
-                      <td className="py-2 px-2 text-right font-mono text-xs" style={{ color: '#6b5f8a' }}>{s.set_number}</td>
-                      <td className="py-2 px-2 text-right font-mono text-sm" style={{ color: '#f1eeff' }}>{s.reps ?? '—'}</td>
-                      <td className="py-2 px-2 text-right font-mono text-sm" style={{ color: '#f1eeff' }}>{s.weight_kg ?? '—'}</td>
-                      <td className="py-2 px-2 text-right font-mono text-xs" style={{ color: '#6b5f8a' }}>{s.rpe ?? '—'}</td>
+                    <tr key={s.id} style={{ borderBottom: '1px solid var(--divider)' }}>
+                      <td className="py-2 px-3 text-sm" style={{ color: 'var(--text)' }}>{s.exercise_name}</td>
+                      <td className="py-2 px-2 text-right font-mono text-xs" style={{ color: 'var(--text-muted)' }}>{s.set_number}</td>
+                      <td className="py-2 px-2 text-right font-mono text-sm" style={{ color: 'var(--text)' }}>{s.reps ?? '—'}</td>
+                      <td className="py-2 px-2 text-right font-mono text-sm" style={{ color: 'var(--text)' }}>{s.weight_kg ?? '—'}</td>
+                      <td className="py-2 px-2 text-right font-mono text-xs" style={{ color: 'var(--text-muted)' }}>{s.rpe ?? '—'}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -421,29 +414,24 @@ export default function LogWorkoutsPage() {
       {/* Today's workouts */}
       {workouts.length > 0 && (
         <div className="space-y-3">
-          <p className="text-[11px] font-semibold uppercase tracking-widest" style={{ color: '#4a4268' }}>
-            Oggi
-          </p>
+          <p className="section-label">Oggi</p>
           {workouts.map((w) => (
             <div key={w.id} className="card p-4">
               <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold" style={{ color: '#d8b4fe' }}>
+                  <span className="text-sm font-semibold" style={{ color: 'var(--text)' }}>
                     {w.title ?? WORKOUT_TYPES.find((t) => t.value === w.workout_type)?.label ?? w.workout_type}
                   </span>
-                  <span className="text-[10px] uppercase tracking-wide px-2 py-0.5 rounded-full"
-                    style={{ background: 'rgba(124,58,237,0.1)', color: '#7c3aed' }}>
-                    {w.workout_type}
-                  </span>
+                  <span className="pill">{w.workout_type}</span>
                 </div>
                 <button
                   onClick={() => setActiveWorkout(w.id === activeWorkout ? null : w.id)}
-                  className="text-[11px] transition-colors"
-                  style={{ color: '#7c3aed' }}>
+                  className="text-[11px] font-semibold transition-colors"
+                  style={{ color: 'var(--accent)' }}>
                   {w.id === activeWorkout ? 'Chiudi' : 'Apri'}
                 </button>
               </div>
-              <p className="text-[11px] font-mono" style={{ color: '#4a4268' }}>
+              <p className="text-[11px] font-mono" style={{ color: 'var(--text-muted)' }}>
                 {w.sets.length} serie loggat{w.sets.length === 1 ? 'a' : 'e'}
               </p>
             </div>

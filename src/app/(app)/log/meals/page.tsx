@@ -90,13 +90,13 @@ function BarcodeModal({ onDetect, onClose }: { onDetect: (code: string) => void;
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
       style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(8px)' }}>
       <div className="w-full max-w-sm rounded-2xl overflow-hidden space-y-0"
-        style={{ background: '#0e0e1f', border: '1px solid rgba(109,40,217,0.3)', boxShadow: '0 24px 80px rgba(0,0,0,0.6)' }}>
+        style={{ background: 'var(--surface-1)', border: '1px solid var(--border-strong)', boxShadow: 'var(--shadow-elev)' }}>
 
-        <div className="px-5 py-4 flex items-center justify-between border-b"
-          style={{ borderColor: 'rgba(109,40,217,0.2)' }}>
-          <p className="font-semibold text-sm" style={{ color: '#d8b4fe' }}>Scansiona Barcode</p>
+        <div className="px-5 py-4 flex items-center justify-between"
+          style={{ borderBottom: '1px solid var(--border)' }}>
+          <p className="font-semibold text-sm" style={{ color: 'var(--text)' }}>Scansiona Barcode</p>
           <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg"
-            style={{ background: 'rgba(255,255,255,0.05)', color: '#6b5f8a' }}>
+            style={{ background: 'var(--surface-soft)', color: 'var(--text-muted)' }}>
             ✕
           </button>
         </div>
@@ -104,8 +104,8 @@ function BarcodeModal({ onDetect, onClose }: { onDetect: (code: string) => void;
         <div className="p-5 space-y-4">
           {status === 'starting' && (
             <div className="h-40 rounded-xl flex items-center justify-center"
-              style={{ background: 'rgba(124,58,237,0.05)', border: '1px solid rgba(109,40,217,0.15)' }}>
-              <p className="text-sm" style={{ color: '#6b5f8a' }}>Avvio fotocamera...</p>
+              style={{ background: 'var(--surface-soft)', border: '1px solid var(--border)' }}>
+              <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Avvio fotocamera...</p>
             </div>
           )}
 
@@ -114,18 +114,18 @@ function BarcodeModal({ onDetect, onClose }: { onDetect: (code: string) => void;
               <video ref={videoRef} className="w-full rounded-xl" style={{ maxHeight: '220px', objectFit: 'cover' }} />
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 <div className="w-48 h-28 rounded-lg"
-                  style={{ border: '2px solid rgba(167,139,250,0.7)', boxShadow: '0 0 0 2000px rgba(0,0,0,0.4)' }} />
+                  style={{ border: '2px solid var(--accent)', boxShadow: '0 0 0 2000px rgba(0,0,0,0.4)' }} />
               </div>
               <p className="absolute bottom-2 left-0 right-0 text-center text-[11px]"
-                style={{ color: '#a78bfa' }}>Inquadra il barcode</p>
+                style={{ color: 'var(--accent)' }}>Inquadra il barcode</p>
             </div>
           )}
 
           {status === 'error' && (
             <div className="h-24 rounded-xl flex flex-col items-center justify-center gap-2"
-              style={{ background: 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.2)' }}>
-              <p className="text-sm" style={{ color: '#f87171' }}>Fotocamera non disponibile</p>
-              <button onClick={() => setStatus('manual')} className="text-xs underline" style={{ color: '#6b5f8a' }}>
+              style={{ background: 'var(--danger-bg)', border: '1px solid var(--danger-border)' }}>
+              <p className="text-sm" style={{ color: 'var(--danger)' }}>Fotocamera non disponibile</p>
+              <button onClick={() => setStatus('manual')} className="text-xs underline" style={{ color: 'var(--text-muted)' }}>
                 Inserisci manualmente
               </button>
             </div>
@@ -134,12 +134,12 @@ function BarcodeModal({ onDetect, onClose }: { onDetect: (code: string) => void;
           {(status === 'manual' || !hasBarcodeDetector) && (
             <div className="space-y-3">
               {!hasBarcodeDetector && (
-                <p className="text-xs text-center" style={{ color: '#6b5f8a' }}>
+                <p className="text-xs text-center" style={{ color: 'var(--text-muted)' }}>
                   Scansione automatica non supportata su questo browser (usa Chrome su Android).
                 </p>
               )}
               <div>
-                <p className="text-xs mb-1.5" style={{ color: '#6b5f8a' }}>Codice EAN / barcode</p>
+                <p className="text-xs mb-1.5" style={{ color: 'var(--text-muted)' }}>Codice EAN / barcode</p>
                 <input
                   type="number"
                   inputMode="numeric"
@@ -154,8 +154,7 @@ function BarcodeModal({ onDetect, onClose }: { onDetect: (code: string) => void;
               <button
                 onClick={() => manualCode.length >= 8 && onDetect(manualCode)}
                 disabled={manualCode.length < 8}
-                className="btn-primary w-full"
-                style={{ opacity: manualCode.length < 8 ? 0.5 : 1 }}>
+                className="btn-primary w-full">
                 Cerca prodotto
               </button>
             </div>
@@ -163,7 +162,7 @@ function BarcodeModal({ onDetect, onClose }: { onDetect: (code: string) => void;
 
           {status === 'scanning' && (
             <button onClick={() => { cancelAnimationFrame(rafRef.current); streamRef.current?.getTracks().forEach(t => t.stop()); setStatus('manual') }}
-              className="w-full text-xs py-1.5" style={{ color: '#6b5f8a' }}>
+              className="w-full text-xs py-1.5" style={{ color: 'var(--text-muted)' }}>
               Inserisci manualmente
             </button>
           )}
@@ -311,28 +310,28 @@ export default function LogMealsPage() {
       {/* Header + date navigation */}
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h1 className="font-display text-xl md:text-2xl font-bold tracking-tight" style={{ color: '#f1eeff' }}>Pasti</h1>
-          <p className="text-sm mt-0.5 capitalize" style={{ color: '#6b5f8a' }}>{dateLabel}</p>
+          <h1 className="font-display text-xl md:text-2xl font-bold tracking-tight" style={{ color: 'var(--text)' }}>Pasti</h1>
+          <p className="text-sm mt-0.5 capitalize" style={{ color: 'var(--text-muted)' }}>{dateLabel}</p>
         </div>
         <div className="flex items-center gap-1">
           <button onClick={() => setCurrentDate(addDays(currentDate, -1))}
-            className="w-8 h-8 rounded-xl flex items-center justify-center transition-colors"
-            style={{ background: 'rgba(124,58,237,0.08)', border: '1px solid rgba(109,40,217,0.2)', color: '#a78bfa' }}>
+            className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
+            style={{ background: 'var(--surface-soft)', border: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
             ‹
           </button>
           {!isToday && (
             <button onClick={() => setCurrentDate(todayStr)}
-              className="px-2 h-8 rounded-xl text-[11px] transition-colors"
-              style={{ background: 'rgba(124,58,237,0.08)', border: '1px solid rgba(109,40,217,0.2)', color: '#a78bfa' }}>
+              className="px-2 h-8 rounded-lg text-[11px] transition-colors"
+              style={{ background: 'var(--accent-bg)', border: '1px solid var(--accent-border)', color: 'var(--accent)' }}>
               Oggi
             </button>
           )}
           <button onClick={() => { if (!isFuture) setCurrentDate(addDays(currentDate, 1)) }}
             disabled={isToday}
-            className="w-8 h-8 rounded-xl flex items-center justify-center transition-colors"
+            className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
             style={isToday
-              ? { background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(109,40,217,0.1)', color: '#3d3459', cursor: 'not-allowed' }
-              : { background: 'rgba(124,58,237,0.08)', border: '1px solid rgba(109,40,217,0.2)', color: '#a78bfa' }}>
+              ? { background: 'var(--surface-soft)', border: '1px solid var(--border)', color: 'var(--text-dim)', cursor: 'not-allowed' }
+              : { background: 'var(--surface-soft)', border: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
             ›
           </button>
         </div>
@@ -341,17 +340,17 @@ export default function LogMealsPage() {
       {/* Daily totals */}
       <div className="card p-3 md:p-4 grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
         {[
-          { label: 'Calorie', value: Math.round(totals.kcal), unit: 'kcal', color: '#a78bfa' },
-          { label: 'Proteine', value: Math.round(totals.protein_g), unit: 'g', color: '#60a5fa' },
-          { label: 'Carbs', value: Math.round(totals.carbs_g), unit: 'g', color: '#fbbf24' },
-          { label: 'Grassi', value: Math.round(totals.fat_g), unit: 'g', color: '#f472b6' },
+          { label: 'Calorie',  value: Math.round(totals.kcal),      unit: 'kcal', color: 'var(--macro-kcal)' },
+          { label: 'Proteine', value: Math.round(totals.protein_g), unit: 'g',    color: 'var(--macro-protein)' },
+          { label: 'Carbs',    value: Math.round(totals.carbs_g),   unit: 'g',    color: 'var(--macro-carbs)' },
+          { label: 'Grassi',   value: Math.round(totals.fat_g),     unit: 'g',    color: 'var(--macro-fat)' },
         ].map((s) => (
-          <div key={s.label} className="rounded-xl py-2.5 px-2"
-            style={{ background: 'rgba(124,58,237,0.06)', border: '1px solid rgba(109,40,217,0.15)' }}>
+          <div key={s.label} className="rounded-lg py-2.5 px-2"
+            style={{ background: 'var(--surface-soft)', border: '1px solid var(--border)' }}>
             <p className="font-mono text-lg md:text-xl font-medium" style={{ color: s.color }}>
-              {s.value}<span className="text-xs ml-0.5" style={{ color: '#4a4268' }}>{s.unit}</span>
+              {s.value}<span className="text-xs ml-0.5" style={{ color: 'var(--text-dim)' }}>{s.unit}</span>
             </p>
-            <p className="text-[10px] mt-0.5 uppercase tracking-wide" style={{ color: '#4a4268' }}>{s.label}</p>
+            <p className="text-[10px] mt-0.5 uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>{s.label}</p>
           </div>
         ))}
       </div>
@@ -361,8 +360,8 @@ export default function LogMealsPage() {
         <div className="flex items-center justify-between mb-3">
           <p className="section-label">Finestra Anabolica</p>
           {anabolicCovered
-            ? <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full" style={{ background: 'rgba(34,197,94,0.12)', color: '#86efac', border: '1px solid rgba(34,197,94,0.25)' }}>✓ Coperta</span>
-            : <span className="text-[11px] px-2 py-0.5 rounded-full" style={{ background: 'rgba(251,146,60,0.1)', color: '#fb923c', border: '1px solid rgba(251,146,60,0.25)' }}>Incompleta</span>
+            ? <span className="pill pill-success">✓ Coperta</span>
+            : <span className="pill pill-warning">Incompleta</span>
           }
         </div>
         <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
@@ -371,40 +370,43 @@ export default function LogMealsPage() {
             const isKey = m.name === 'Pre-workout' || m.name === 'Post-workout'
             const mealData = meals.find((meal) => meal.meal_name === m.name)
             const mealKcal = mealData ? mealData.items.reduce((a, i) => a + i.kcal, 0) : 0
+            const slotColor = logged
+              ? isKey ? 'var(--success)' : 'var(--text-secondary)'
+              : 'var(--text-dim)'
             return (
               <div key={m.name}
-                className="flex flex-col items-center gap-1 p-2 rounded-xl text-center"
+                className="flex flex-col items-center gap-1 p-2 rounded-lg text-center"
                 style={{
                   background: logged
-                    ? isKey ? 'rgba(34,197,94,0.08)' : 'rgba(124,58,237,0.06)'
-                    : 'rgba(255,255,255,0.02)',
+                    ? isKey ? 'var(--success-bg)' : 'var(--surface-soft)'
+                    : 'transparent',
                   border: logged
-                    ? isKey ? '1px solid rgba(34,197,94,0.25)' : '1px solid rgba(109,40,217,0.2)'
-                    : isKey ? '1px dashed rgba(251,146,60,0.3)' : '1px solid rgba(109,40,217,0.08)',
+                    ? isKey ? '1px solid var(--success-border)' : '1px solid var(--border)'
+                    : isKey ? '1px dashed var(--warning-border)' : '1px solid var(--border)',
                 }}>
                 <span className="text-base" style={{ opacity: logged ? 1 : 0.35 }}>{m.icon}</span>
-                <span className="text-[9px] leading-tight" style={{ color: logged ? isKey ? '#86efac' : '#c4b5fd' : '#3d3459' }}>
+                <span className="text-[9px] leading-tight" style={{ color: slotColor }}>
                   {m.name.replace('-', '‑')}
                 </span>
                 {logged && mealKcal > 0 && (
-                  <span className="text-[9px] font-mono" style={{ color: '#4a4268' }}>{Math.round(mealKcal)}</span>
+                  <span className="text-[9px] font-mono" style={{ color: 'var(--text-muted)' }}>{Math.round(mealKcal)}</span>
                 )}
                 {!logged && isKey && (
-                  <span className="text-[9px]" style={{ color: '#fb923c' }}>!</span>
+                  <span className="text-[9px]" style={{ color: 'var(--warning)' }}>!</span>
                 )}
               </div>
             )
           })}
         </div>
         {!anabolicCovered && (hasPreWorkout || hasPostWorkout) && (
-          <p className="text-[11px] mt-2.5" style={{ color: '#6b5f8a' }}>
+          <p className="text-[11px] mt-2.5" style={{ color: 'var(--text-muted)' }}>
             {!hasPreWorkout && '⚡ Manca il Pre-workout. '}
             {!hasPostWorkout && '💪 Manca il Post-workout.'}
             {' '}Carboidrati e proteine entro 1h prima e dopo il workout massimizzano il recupero.
           </p>
         )}
         {!anabolicCovered && !hasPreWorkout && !hasPostWorkout && meals.length > 0 && (
-          <p className="text-[11px] mt-2.5" style={{ color: '#6b5f8a' }}>
+          <p className="text-[11px] mt-2.5" style={{ color: 'var(--text-muted)' }}>
             Aggiungi i pasti Pre-workout e Post-workout per coprire la finestra anabolica.
           </p>
         )}
@@ -416,14 +418,14 @@ export default function LogMealsPage() {
 
         {/* Meal selector */}
         <div>
-          <p className="text-xs mb-2" style={{ color: '#6b5f8a' }}>Pasto</p>
+          <p className="text-xs mb-2" style={{ color: 'var(--text-muted)' }}>Pasto</p>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {MEALS.map((m) => (
               <button key={m.name} onClick={() => setSelectedMeal(m.name)}
-                className="flex items-center gap-2 px-3 py-2 rounded-xl text-[13px] transition-all text-left"
+                className="flex items-center gap-2 px-3 py-2 rounded-lg text-[13px] transition-all text-left"
                 style={selectedMeal === m.name
-                  ? { background: 'rgba(124,58,237,0.15)', border: '1px solid rgba(124,58,237,0.4)', color: '#d8b4fe' }
-                  : { background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(109,40,217,0.15)', color: '#6b5f8a' }}>
+                  ? { background: 'var(--accent-bg)', border: '1px solid var(--accent-border)', color: 'var(--accent)' }
+                  : { background: 'var(--surface-soft)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}>
                 <span>{m.icon}</span><span>{m.name}</span>
               </button>
             ))}
@@ -432,7 +434,7 @@ export default function LogMealsPage() {
 
         {/* Search + Barcode */}
         <div>
-          <p className="text-xs mb-2" style={{ color: '#6b5f8a' }}>Cerca alimento</p>
+          <p className="text-xs mb-2" style={{ color: 'var(--text-muted)' }}>Cerca alimento</p>
           <div className="flex gap-2">
             <input type="text" value={query}
               onChange={(e) => setQuery(e.target.value)}
@@ -442,8 +444,8 @@ export default function LogMealsPage() {
             <button
               onClick={() => setShowScanner(true)}
               title="Scansiona barcode"
-              className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all"
-              style={{ background: 'rgba(124,58,237,0.08)', border: '1px solid rgba(109,40,217,0.2)', color: '#a78bfa' }}>
+              className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 transition-all"
+              style={{ background: 'var(--surface-soft)', border: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                 <rect x="2" y="4" width="2.5" height="16" fill="currentColor" />
                 <rect x="6" y="4" width="1.5" height="16" fill="currentColor" opacity="0.7" />
@@ -459,23 +461,23 @@ export default function LogMealsPage() {
           </div>
 
           {barcodeLoading && (
-            <p className="text-xs mt-2" style={{ color: '#a78bfa' }}>Ricerca prodotto in corso...</p>
+            <p className="text-xs mt-2" style={{ color: 'var(--accent)' }}>Ricerca prodotto in corso...</p>
           )}
           {barcodeError && (
-            <p className="text-xs mt-2" style={{ color: '#f87171' }}>{barcodeError}</p>
+            <p className="text-xs mt-2" style={{ color: 'var(--danger)' }}>{barcodeError}</p>
           )}
 
           {/* Recenti */}
           {!query && !selected && results.length === 0 && recentFoods.length > 0 && (
             <div className="mt-3">
-              <p className="text-[10px] uppercase tracking-wide mb-2" style={{ color: '#4a4268' }}>Usati di recente</p>
+              <p className="text-[10px] uppercase tracking-wide mb-2" style={{ color: 'var(--text-muted)' }}>Usati di recente</p>
               <div className="flex flex-wrap gap-1.5">
                 {recentFoods.map((f) => (
                   <button key={f.id} onClick={() => setSelected(f)}
                     className="px-2.5 py-1 rounded-lg text-[11px] transition-colors text-left"
-                    style={{ background: 'rgba(124,58,237,0.1)', border: '1px solid rgba(109,40,217,0.25)', color: '#c4b5fd' }}>
+                    style={{ background: 'var(--surface-soft)', border: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
                     {f.name}
-                    <span className="ml-1.5 opacity-60">{f.kcal_100g}kcal</span>
+                    <span className="ml-1.5" style={{ color: 'var(--text-muted)' }}>{f.kcal_100g}kcal</span>
                   </button>
                 ))}
               </div>
@@ -486,20 +488,20 @@ export default function LogMealsPage() {
         {/* Results */}
         {results.length > 0 && !selected && (
           <div>
-            <p className="text-[10px] mb-1.5 uppercase tracking-wide" style={{ color: '#4a4268' }}>
+            <p className="text-[10px] mb-1.5 uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
               {results.length} risultati
             </p>
             <div className="space-y-1 max-h-[480px] overflow-y-auto -mx-1 px-1">
               {results.map((r) => (
                 <button key={r.id} onClick={() => setSelected(r)}
-                  className="w-full text-left px-3 py-2.5 rounded-xl transition-all"
+                  className="w-full text-left px-3 py-2.5 rounded-lg transition-all"
                   style={{ border: '1px solid transparent' }}
-                  onMouseEnter={(e) => { const el = e.currentTarget as HTMLElement; el.style.background = 'rgba(124,58,237,0.08)'; el.style.borderColor = 'rgba(109,40,217,0.2)' }}
+                  onMouseEnter={(e) => { const el = e.currentTarget as HTMLElement; el.style.background = 'var(--surface-soft)'; el.style.borderColor = 'var(--border-strong)' }}
                   onMouseLeave={(e) => { const el = e.currentTarget as HTMLElement; el.style.background = 'transparent'; el.style.borderColor = 'transparent' }}>
-                  <p className="text-sm" style={{ color: '#f1eeff' }}>{r.name}</p>
-                  <p className="text-[11px] mt-0.5 font-mono" style={{ color: '#6b5f8a' }}>
+                  <p className="text-sm" style={{ color: 'var(--text)' }}>{r.name}</p>
+                  <p className="text-[11px] mt-0.5 font-mono" style={{ color: 'var(--text-muted)' }}>
                     {r.kcal_100g} kcal · P {r.protein_100g}g · C {r.carbs_100g}g · G {r.fat_100g}g
-                    <span className="ml-1 opacity-60">(per 100g)</span>
+                    <span className="ml-1" style={{ color: 'var(--text-dim)' }}>(per 100g)</span>
                   </p>
                 </button>
               ))}
@@ -509,35 +511,35 @@ export default function LogMealsPage() {
 
         {/* Selected food */}
         {selected && (
-          <div className="rounded-2xl p-4 space-y-4"
-            style={{ background: 'rgba(124,58,237,0.07)', border: '1px solid rgba(124,58,237,0.25)' }}>
+          <div className="rounded-lg p-4 space-y-4"
+            style={{ background: 'var(--accent-bg)', border: '1px solid var(--accent-border)' }}>
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-sm font-semibold" style={{ color: '#f1eeff' }}>{selected.name}</p>
-                <p className="text-[11px] mt-0.5 font-mono" style={{ color: '#6b5f8a' }}>{selected.kcal_100g} kcal per 100g</p>
+                <p className="text-sm font-semibold" style={{ color: 'var(--text)' }}>{selected.name}</p>
+                <p className="text-[11px] mt-0.5 font-mono" style={{ color: 'var(--text-muted)' }}>{selected.kcal_100g} kcal per 100g</p>
               </div>
               <button onClick={() => { setSelected(null); setResults([]); setBarcodeError('') }}
                 className="text-[11px] px-2 py-1 rounded-lg"
-                style={{ color: '#6b5f8a', background: 'rgba(255,255,255,0.04)' }}>
+                style={{ color: 'var(--text-muted)', background: 'var(--surface-soft)' }}>
                 Cambia
               </button>
             </div>
             <div className="flex flex-col sm:flex-row sm:items-end gap-3">
               <div>
-                <p className="text-xs mb-1.5" style={{ color: '#6b5f8a' }}>Quantità (g)</p>
+                <p className="text-xs mb-1.5" style={{ color: 'var(--text-muted)' }}>Quantità (g)</p>
                 <input type="number" min="1" value={quantity} onChange={(e) => setQuantity(e.target.value)}
                   className="inp w-full sm:w-28" />
               </div>
               <div className="grid grid-cols-4 gap-2 text-center sm:flex-1 pb-0.5">
                 {[
-                  { label: 'kcal', value: pKcal, color: '#a78bfa' },
-                  { label: 'P', value: pProt, color: '#60a5fa' },
-                  { label: 'C', value: pCarb, color: '#fbbf24' },
-                  { label: 'G', value: pFat, color: '#f472b6' },
+                  { label: 'kcal', value: pKcal, color: 'var(--macro-kcal)' },
+                  { label: 'P',    value: pProt, color: 'var(--macro-protein)' },
+                  { label: 'C',    value: pCarb, color: 'var(--macro-carbs)' },
+                  { label: 'G',    value: pFat,  color: 'var(--macro-fat)' },
                 ].map((m) => (
                   <div key={m.label}>
                     <p className="font-mono text-sm font-medium" style={{ color: m.color }}>{m.value}</p>
-                    <p className="text-[10px]" style={{ color: '#4a4268' }}>{m.label}</p>
+                    <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{m.label}</p>
                   </div>
                 ))}
               </div>
@@ -559,31 +561,31 @@ export default function LogMealsPage() {
         return (
           <div key={meal.id} className="card overflow-hidden">
             <div className="px-4 py-3 flex items-center justify-between"
-              style={{ borderBottom: '1px solid rgba(109,40,217,0.15)' }}>
+              style={{ borderBottom: '1px solid var(--border)' }}>
               <div className="flex items-center gap-2">
                 <span className="text-base">{mealDef?.icon ?? '🍽'}</span>
-                <span className="text-sm font-semibold" style={{ color: '#d8b4fe' }}>{meal.meal_name}</span>
+                <span className="text-sm font-semibold" style={{ color: 'var(--text)' }}>{meal.meal_name}</span>
               </div>
               {meal.items.length > 0 && (
-                <span className="font-mono text-[11px]" style={{ color: '#6b5f8a' }}>
+                <span className="font-mono text-[11px]" style={{ color: 'var(--text-muted)' }}>
                   {Math.round(mealTotals.kcal)} kcal · P {Math.round(mealTotals.protein_g)}g
                 </span>
               )}
             </div>
             {meal.items.length === 0
-              ? <p className="p-4 text-xs" style={{ color: '#4a4268' }}>Nessun alimento</p>
+              ? <p className="p-4 text-xs" style={{ color: 'var(--text-muted)' }}>Nessun alimento</p>
               : (
-                <div className="divide-y" style={{ borderColor: 'rgba(109,40,217,0.08)' }}>
+                <div className="divide-y" style={{ borderColor: 'var(--divider)' }}>
                   {meal.items.map((item) => (
                     <div key={item.id} className="px-4 py-2.5 flex items-center justify-between">
                       <div className="min-w-0 mr-3">
-                        <p className="text-sm truncate" style={{ color: '#e2d9f3' }}>{item.food_name}</p>
-                        <p className="text-[11px] font-mono mt-0.5" style={{ color: '#4a4268' }}>
+                        <p className="text-sm truncate" style={{ color: 'var(--text)' }}>{item.food_name}</p>
+                        <p className="text-[11px] font-mono mt-0.5" style={{ color: 'var(--text-muted)' }}>
                           {item.quantity_g}g · P {item.protein_g}g · C {item.carbs_g}g · G {item.fat_g}g
                         </p>
                       </div>
-                      <span className="font-mono text-sm shrink-0" style={{ color: '#a78bfa' }}>
-                        {Math.round(item.kcal)}<span className="text-[10px] ml-0.5" style={{ color: '#4a4268' }}>kcal</span>
+                      <span className="font-mono text-sm shrink-0" style={{ color: 'var(--macro-kcal)' }}>
+                        {Math.round(item.kcal)}<span className="text-[10px] ml-0.5" style={{ color: 'var(--text-dim)' }}>kcal</span>
                       </span>
                     </div>
                   ))}

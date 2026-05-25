@@ -63,36 +63,36 @@ export default async function SleepPage() {
   return (
     <div className="p-4 md:p-6 max-w-4xl mx-auto space-y-5">
       <div>
-        <h1 className="font-display text-xl md:text-2xl font-bold tracking-tight" style={{ color: '#ede9fe' }}>
+        <h1 className="font-display text-xl md:text-2xl font-bold tracking-tight" style={{ color: 'var(--text)' }}>
           Analisi Sonno
         </h1>
-        <p className="text-sm mt-0.5" style={{ color: '#8b7faa' }}>Ultimi 30 giorni — dati WHOOP</p>
+        <p className="text-sm mt-0.5" style={{ color: 'var(--text-muted)' }}>Ultimi 30 giorni — dati WHOOP</p>
       </div>
 
       {data.length === 0 ? (
         <div className="card p-16 text-center">
-          <p style={{ color: '#8b7faa' }}>Nessun dato WHOOP disponibile.</p>
+          <p style={{ color: 'var(--text-muted)' }}>Nessun dato WHOOP disponibile.</p>
         </div>
       ) : (
         <>
           {/* Stats chips */}
           <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-7 gap-2">
             {[
-              { label: 'Durata', value: stats.duration, unit: 'h', color: '#a78bfa' },
-              { label: 'Perf.', value: stats.performance, unit: '%', color: '#8b5cf6' },
-              { label: 'Efficienza', value: stats.efficiency, unit: '%', color: '#7c3aed' },
-              { label: 'Consistenza', value: stats.consistency, unit: '%', color: '#6d28d9' },
-              { label: 'Resp.', value: stats.respiratory, unit: '/m', color: '#93c5fd' },
-              { label: 'REM', value: stats.rem, unit: 'h', color: '#c4b5fd' },
-              { label: 'Profondo', value: stats.deep, unit: 'h', color: '#4f46e5' },
+              { label: 'Durata',      value: stats.duration,    unit: 'h',  color: 'var(--sleep-deep)' },
+              { label: 'Perf.',       value: stats.performance, unit: '%',  color: 'var(--accent)' },
+              { label: 'Efficienza',  value: stats.efficiency,  unit: '%',  color: 'var(--info)' },
+              { label: 'Consistenza', value: stats.consistency, unit: '%',  color: 'var(--sleep-light)' },
+              { label: 'Resp.',       value: stats.respiratory, unit: '/m', color: 'var(--text-secondary)' },
+              { label: 'REM',         value: stats.rem,         unit: 'h',  color: 'var(--sleep-rem)' },
+              { label: 'Profondo',    value: stats.deep,        unit: 'h',  color: 'var(--sleep-deep)' },
             ].map((s) => (
               <div key={s.label} className="stat-chip text-center">
                 <p className="font-mono text-sm font-semibold" style={{ color: s.color }}>
                   {s.value ?? '—'}
-                  {s.value !== null && <span className="text-[10px] ml-0.5" style={{ color: '#5e5479' }}>{s.unit}</span>}
+                  {s.value !== null && <span className="text-[10px] ml-0.5" style={{ color: 'var(--text-dim)' }}>{s.unit}</span>}
                 </p>
-                <p className="text-[10px] mt-0.5 uppercase tracking-wide" style={{ color: '#8b7faa' }}>{s.label}</p>
-                <p className="text-[9px] mt-0.5" style={{ color: '#4a4268' }}>avg 30gg</p>
+                <p className="text-[10px] mt-0.5 uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>{s.label}</p>
+                <p className="text-[9px] mt-0.5" style={{ color: 'var(--text-dim)' }}>avg 30gg</p>
               </div>
             ))}
           </div>

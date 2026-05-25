@@ -200,8 +200,19 @@ ${workoutLines}`
 
     return NextResponse.json({ summary: stored })
   } catch (err: unknown) {
-    console.error('AI weekly report error:', err instanceof Error ? err.message : err)
-    return NextResponse.json({ error: 'AI unavailable' }, { status: 503 })
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const anyErr = err as any
+    const status: number = typeof anyErr?.status === 'number' ? anyErr.status : 503
+    const apiMessage: string | undefined =
+      anyErr?.error?.error?.message ??
+      anyErr?.error?.message ??
+      (err instanceof Error ? err.message : undefined)
+    const detail = apiMessage ?? 'Errore sconosciuto'
+    console.error('AI weekly report error:', status, detail, anyErr?.error ?? '')
+    return NextResponse.json(
+      { error: `AI error (${status}): ${detail}` },
+      { status: status >= 400 && status < 600 ? status : 503 }
+    )
   }
 }
 

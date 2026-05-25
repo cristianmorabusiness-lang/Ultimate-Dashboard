@@ -53,10 +53,10 @@ export function Sidebar({ userEmail }: { userEmail: string }) {
     <>
       {/* ── Desktop sidebar (md+) ─────────────────────────────────────── */}
       <aside className="hidden md:flex w-56 shrink-0 flex-col h-full border-r"
-        style={{ background: '#09091a', borderColor: 'rgba(109,40,217,0.2)' }}>
+        style={{ background: 'var(--surface-1)', borderColor: 'var(--border)' }}>
 
         {/* Logo */}
-        <div className="p-4 border-b" style={{ borderColor: 'rgba(109,40,217,0.2)' }}>
+        <div className="p-4" style={{ borderBottom: '1px solid var(--border)' }}>
           <Logo />
         </div>
 
@@ -64,8 +64,8 @@ export function Sidebar({ userEmail }: { userEmail: string }) {
         <nav className="flex-1 p-3 space-y-5 overflow-y-auto">
           {NAV.map((group) => (
             <div key={group.group}>
-              <p className="text-[9px] font-semibold uppercase tracking-[0.15em] mb-1.5 px-2"
-                style={{ color: '#4a4268' }}>
+              <p className="text-[9px] font-semibold uppercase tracking-[0.18em] mb-1.5 px-2"
+                style={{ color: 'var(--text-dim)' }}>
                 {group.group}
               </p>
               <div className="space-y-0.5">
@@ -85,8 +85,8 @@ export function Sidebar({ userEmail }: { userEmail: string }) {
         </nav>
 
         {/* Footer */}
-        <div className="p-3 border-t space-y-1" style={{ borderColor: 'rgba(109,40,217,0.2)' }}>
-          <p className="text-[11px] truncate px-2.5 py-1" style={{ color: '#4a4268' }} title={userEmail}>
+        <div className="p-3 space-y-1" style={{ borderTop: '1px solid var(--border)' }}>
+          <p className="text-[11px] truncate px-2.5 py-1" style={{ color: 'var(--text-dim)' }} title={userEmail}>
             {userEmail}
           </p>
           <SignOutButton onClick={signOut} />
@@ -96,26 +96,25 @@ export function Sidebar({ userEmail }: { userEmail: string }) {
       {/* ── Mobile header (< md) ──────────────────────────────────────── */}
       <header className="md:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-4 h-14"
         style={{
-          background: 'rgba(9,9,26,0.95)',
-          borderBottom: '1px solid rgba(109,40,217,0.2)',
+          background: 'color-mix(in srgb, var(--surface-1) 95%, transparent)',
+          borderBottom: '1px solid var(--border)',
           backdropFilter: 'blur(16px)',
           WebkitBackdropFilter: 'blur(16px)',
         }}>
         <Logo />
         <button
           onClick={() => setDrawerOpen(true)}
-          className="w-9 h-9 flex flex-col items-center justify-center gap-[5px] rounded-xl transition-colors"
-          style={{ background: 'rgba(124,58,237,0.08)', border: '1px solid rgba(109,40,217,0.2)' }}
+          className="w-9 h-9 flex flex-col items-center justify-center gap-[5px] rounded-lg transition-colors"
+          style={{ background: 'var(--surface-soft)', border: '1px solid var(--border)' }}
           aria-label="Apri menu"
         >
-          <span className="block w-4 h-[1.5px] rounded-full" style={{ background: '#a78bfa' }} />
-          <span className="block w-4 h-[1.5px] rounded-full" style={{ background: '#a78bfa' }} />
-          <span className="block w-2.5 h-[1.5px] rounded-full" style={{ background: '#a78bfa' }} />
+          <span className="block w-4 h-[1.5px] rounded-full" style={{ background: 'var(--text-secondary)' }} />
+          <span className="block w-4 h-[1.5px] rounded-full" style={{ background: 'var(--text-secondary)' }} />
+          <span className="block w-2.5 h-[1.5px] rounded-full" style={{ background: 'var(--text-secondary)' }} />
         </button>
       </header>
 
       {/* ── Drawer overlay ────────────────────────────────────────────── */}
-      {/* Backdrop */}
       <div
         className="md:hidden fixed inset-0 z-50 transition-opacity duration-300"
         style={{
@@ -127,23 +126,21 @@ export function Sidebar({ userEmail }: { userEmail: string }) {
         onClick={closeDrawer}
       />
 
-      {/* Drawer panel */}
       <div
         className="md:hidden fixed top-0 left-0 bottom-0 z-50 w-72 flex flex-col transition-transform duration-300 ease-out"
         style={{
-          background: '#09091a',
-          borderRight: '1px solid rgba(109,40,217,0.25)',
+          background: 'var(--surface-1)',
+          borderRight: '1px solid var(--border)',
           transform: drawerOpen ? 'translateX(0)' : 'translateX(-100%)',
         }}
       >
-        {/* Drawer header */}
-        <div className="flex items-center justify-between px-4 h-14 border-b shrink-0"
-          style={{ borderColor: 'rgba(109,40,217,0.2)' }}>
+        <div className="flex items-center justify-between px-4 h-14 shrink-0"
+          style={{ borderBottom: '1px solid var(--border)' }}>
           <Logo />
           <button
             onClick={closeDrawer}
-            className="w-8 h-8 flex items-center justify-center rounded-xl transition-colors"
-            style={{ background: 'rgba(255,255,255,0.04)', color: '#6b5f8a' }}
+            className="w-8 h-8 flex items-center justify-center rounded-lg transition-colors"
+            style={{ background: 'var(--surface-soft)', color: 'var(--text-muted)' }}
             aria-label="Chiudi menu"
           >
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -152,12 +149,11 @@ export function Sidebar({ userEmail }: { userEmail: string }) {
           </button>
         </div>
 
-        {/* Drawer nav */}
         <nav className="flex-1 p-4 space-y-6 overflow-y-auto">
           {NAV.map((group) => (
             <div key={group.group}>
-              <p className="text-[9px] font-semibold uppercase tracking-[0.15em] mb-2 px-2"
-                style={{ color: '#4a4268' }}>
+              <p className="text-[9px] font-semibold uppercase tracking-[0.18em] mb-2 px-2"
+                style={{ color: 'var(--text-dim)' }}>
                 {group.group}
               </p>
               <div className="space-y-0.5">
@@ -176,9 +172,8 @@ export function Sidebar({ userEmail }: { userEmail: string }) {
           ))}
         </nav>
 
-        {/* Drawer footer */}
-        <div className="p-4 border-t space-y-1 shrink-0" style={{ borderColor: 'rgba(109,40,217,0.2)' }}>
-          <p className="text-[11px] truncate px-2.5 py-1" style={{ color: '#4a4268' }} title={userEmail}>
+        <div className="p-4 space-y-1 shrink-0" style={{ borderTop: '1px solid var(--border)' }}>
+          <p className="text-[11px] truncate px-2.5 py-1" style={{ color: 'var(--text-dim)' }} title={userEmail}>
             {userEmail}
           </p>
           <SignOutButton onClick={signOut} />
@@ -192,16 +187,16 @@ export function Sidebar({ userEmail }: { userEmail: string }) {
 
 function Logo() {
   return (
-    <div className="flex items-center gap-3">
-      <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
-        style={{ background: 'linear-gradient(135deg, #7c3aed, #4f46e5)', boxShadow: '0 0 16px rgba(124,58,237,0.4)' }}>
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-          <path d="M7 1L9.5 5.5H12L8.5 8L10 13L7 10L4 13L5.5 8L2 5.5H4.5L7 1Z" fill="white" />
+    <div className="flex items-center gap-2.5">
+      <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
+        style={{ background: 'var(--accent)', boxShadow: '0 0 0 1px rgba(255,255,255,0.06) inset' }}>
+        <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
+          <path d="M3 7h2.2L6.5 4.2 8 9.8l1.5-2.8H11" stroke="var(--accent-fg)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </div>
-      <div>
-        <span className="font-display font-700 text-[13px] tracking-wide text-white">HEALTH</span>
-        <span className="font-display font-400 text-[13px] tracking-wide" style={{ color: '#a78bfa' }}> MENTOR</span>
+      <div className="flex items-baseline gap-1">
+        <span className="font-display font-bold text-[13px] tracking-tight" style={{ color: 'var(--text)' }}>health</span>
+        <span className="font-display font-normal text-[13px] tracking-tight" style={{ color: 'var(--text-muted)' }}>mentor</span>
       </div>
     </div>
   )
@@ -214,22 +209,22 @@ function NavLink({ href, active, children, onClick }: {
     <Link
       href={href}
       onClick={onClick}
-      className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-[13px] transition-all"
+      className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px] transition-colors"
       style={active ? {
-        background: 'rgba(124,58,237,0.12)',
-        color: '#a78bfa',
+        background: 'var(--accent-bg)',
+        color: 'var(--accent)',
         fontWeight: 600,
-        boxShadow: 'inset 0 0 0 1px rgba(124,58,237,0.25)',
-      } : { color: '#6b5f8a' }}
+        boxShadow: 'inset 2px 0 0 var(--accent)',
+      } : { color: 'var(--text-muted)' }}
       onMouseEnter={(e) => {
         if (!active) {
-          (e.currentTarget as HTMLElement).style.color = '#d8b4fe'
-          ;(e.currentTarget as HTMLElement).style.background = 'rgba(124,58,237,0.06)'
+          (e.currentTarget as HTMLElement).style.color = 'var(--text)'
+          ;(e.currentTarget as HTMLElement).style.background = 'var(--surface-soft)'
         }
       }}
       onMouseLeave={(e) => {
         if (!active) {
-          (e.currentTarget as HTMLElement).style.color = '#6b5f8a'
+          (e.currentTarget as HTMLElement).style.color = 'var(--text-muted)'
           ;(e.currentTarget as HTMLElement).style.background = 'transparent'
         }
       }}
@@ -243,14 +238,14 @@ function SignOutButton({ onClick }: { onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-[13px] transition-all"
-      style={{ color: '#6b5f8a' }}
+      className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px] transition-all"
+      style={{ color: 'var(--text-muted)' }}
       onMouseEnter={(e) => {
-        (e.currentTarget as HTMLElement).style.color = '#f87171'
-        ;(e.currentTarget as HTMLElement).style.background = 'rgba(239,68,68,0.06)'
+        (e.currentTarget as HTMLElement).style.color = 'var(--danger)'
+        ;(e.currentTarget as HTMLElement).style.background = 'var(--danger-bg)'
       }}
       onMouseLeave={(e) => {
-        (e.currentTarget as HTMLElement).style.color = '#6b5f8a'
+        (e.currentTarget as HTMLElement).style.color = 'var(--text-muted)'
         ;(e.currentTarget as HTMLElement).style.background = 'transparent'
       }}
     >
@@ -261,9 +256,12 @@ function SignOutButton({ onClick }: { onClick: () => void }) {
 }
 
 // ── Icons ────────────────────────────────────────────────────────────────────
+function iconColor(active: boolean) {
+  return active ? 'var(--accent)' : 'var(--text-muted)'
+}
 
 function IconGrid({ active, size = 14 }: { active: boolean; size?: number }) {
-  const c = active ? '#a78bfa' : '#6b5f8a'
+  const c = iconColor(active)
   return (
     <svg width={size} height={size} viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
       <rect x="1" y="1" width="5" height="5" rx="1.5" fill={c} />
@@ -275,7 +273,7 @@ function IconGrid({ active, size = 14 }: { active: boolean; size?: number }) {
 }
 
 function IconChart({ active, size = 14 }: { active: boolean; size?: number }) {
-  const c = active ? '#a78bfa' : '#6b5f8a'
+  const c = iconColor(active)
   return (
     <svg width={size} height={size} viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
       <rect x="1" y="7" width="2.5" height="6" rx="1" fill={c} opacity="0.5" />
@@ -286,7 +284,7 @@ function IconChart({ active, size = 14 }: { active: boolean; size?: number }) {
 }
 
 function IconCalendar({ active, size = 14 }: { active: boolean; size?: number }) {
-  const c = active ? '#a78bfa' : '#6b5f8a'
+  const c = iconColor(active)
   return (
     <svg width={size} height={size} viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
       <rect x="1" y="2.5" width="12" height="10.5" rx="2" stroke={c} strokeWidth="1.2" />
@@ -297,7 +295,7 @@ function IconCalendar({ active, size = 14 }: { active: boolean; size?: number })
 }
 
 function IconFork({ active, size = 14 }: { active: boolean; size?: number }) {
-  const c = active ? '#a78bfa' : '#6b5f8a'
+  const c = iconColor(active)
   return (
     <svg width={size} height={size} viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
       <path d="M4 1v4c0 1.1.9 2 2 2v6" stroke={c} strokeWidth="1.2" strokeLinecap="round" />
@@ -308,7 +306,7 @@ function IconFork({ active, size = 14 }: { active: boolean; size?: number }) {
 }
 
 function IconDumbbell({ active, size = 14 }: { active: boolean; size?: number }) {
-  const c = active ? '#a78bfa' : '#6b5f8a'
+  const c = iconColor(active)
   return (
     <svg width={size} height={size} viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
       <rect x="1" y="5" width="2" height="4" rx="1" fill={c} />
@@ -321,7 +319,7 @@ function IconDumbbell({ active, size = 14 }: { active: boolean; size?: number })
 }
 
 function IconScale({ active, size = 14 }: { active: boolean; size?: number }) {
-  const c = active ? '#a78bfa' : '#6b5f8a'
+  const c = iconColor(active)
   return (
     <svg width={size} height={size} viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
       <rect x="1.5" y="9" width="11" height="4" rx="1.5" stroke={c} strokeWidth="1.2" />
@@ -333,7 +331,7 @@ function IconScale({ active, size = 14 }: { active: boolean; size?: number }) {
 }
 
 function IconUser({ active, size = 14 }: { active: boolean; size?: number }) {
-  const c = active ? '#a78bfa' : '#6b5f8a'
+  const c = iconColor(active)
   return (
     <svg width={size} height={size} viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
       <circle cx="7" cy="4.5" r="2.5" stroke={c} strokeWidth="1.2" />
@@ -343,7 +341,7 @@ function IconUser({ active, size = 14 }: { active: boolean; size?: number }) {
 }
 
 function IconMoon({ active, size = 14 }: { active: boolean; size?: number }) {
-  const c = active ? '#a78bfa' : '#6b5f8a'
+  const c = iconColor(active)
   return (
     <svg width={size} height={size} viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
       <path d="M7 2C4.24 2 2 4.24 2 7s2.24 5 5 5c1.38 0 2.63-.56 3.54-1.46C9.9 10.7 9.5 10.74 9 10.74c-2.07 0-3.74-1.68-3.74-3.74C5.26 5.5 6 4.16 7.18 3.3A5 5 0 007 2z" fill={c} />
@@ -352,7 +350,7 @@ function IconMoon({ active, size = 14 }: { active: boolean; size?: number }) {
 }
 
 function IconBrain({ active, size = 14 }: { active: boolean; size?: number }) {
-  const c = active ? '#a78bfa' : '#6b5f8a'
+  const c = iconColor(active)
   return (
     <svg width={size} height={size} viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
       <path d="M5 2.5C5 1.67 5.67 1 6.5 1S8 1.67 8 2.5c0 .28-.08.54-.21.77C8.56 3.1 9 3.75 9 4.5c0 .18-.03.35-.07.52C9.58 5.3 10 6 10 6.8c0 1-.67 1.84-1.6 2.1C8.15 9.55 7.6 10 7 10H6.5C5.67 10 5 9.33 5 8.5V2.5z" stroke={c} strokeWidth="1.1" />
@@ -364,7 +362,7 @@ function IconBrain({ active, size = 14 }: { active: boolean; size?: number }) {
 }
 
 function IconHistory({ active, size = 14 }: { active: boolean; size?: number }) {
-  const c = active ? '#a78bfa' : '#6b5f8a'
+  const c = iconColor(active)
   return (
     <svg width={size} height={size} viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
       <circle cx="7" cy="7" r="5.5" stroke={c} strokeWidth="1.2" />
@@ -374,7 +372,7 @@ function IconHistory({ active, size = 14 }: { active: boolean; size?: number }) 
 }
 
 function IconSignOut({ active, size = 14 }: { active: boolean; size?: number }) {
-  const c = active ? '#f87171' : '#6b5f8a'
+  const c = active ? 'var(--danger)' : 'currentColor'
   return (
     <svg width={size} height={size} viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
       <path d="M5.5 2H3a1 1 0 00-1 1v8a1 1 0 001 1h2.5" stroke={c} strokeWidth="1.2" strokeLinecap="round" />

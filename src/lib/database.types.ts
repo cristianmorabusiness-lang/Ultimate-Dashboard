@@ -207,7 +207,14 @@ export type Database = {
           rpe?: number | null
           created_at?: string
         }
-        Update: Record<string, never>
+        Update: {
+          exercise_name?: string
+          set_number?: number
+          reps?: number | null
+          weight_kg?: number | null
+          duration_sec?: number | null
+          rpe?: number | null
+        }
         Relationships: []
       }
       whoop_daily: {

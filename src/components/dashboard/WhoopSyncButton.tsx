@@ -38,19 +38,20 @@ export function WhoopSyncButton({ lastSyncedAt }: Props) {
       }).format(new Date(lastSyncedAt))
     : null
 
+  const style =
+    status === 'ok'
+      ? { background: 'var(--success-bg)', border: '1px solid var(--success-border)', color: 'var(--success)' }
+      : status === 'error'
+      ? { background: 'var(--danger-bg)',  border: '1px solid var(--danger-border)',  color: 'var(--danger)' }
+      : { background: 'var(--surface-soft)', border: '1px solid var(--border)', color: 'var(--text-secondary)' }
+
   return (
     <div className="flex items-center gap-2">
       <button
         onClick={handleSync}
         disabled={status === 'syncing'}
         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
-        style={
-          status === 'ok'
-            ? { background: 'rgba(52,211,153,0.15)', border: '1px solid rgba(52,211,153,0.3)', color: '#34d399' }
-            : status === 'error'
-            ? { background: 'rgba(248,113,113,0.12)', border: '1px solid rgba(248,113,113,0.3)', color: '#f87171' }
-            : { background: 'rgba(139,92,246,0.12)', border: '1px solid rgba(139,92,246,0.25)', color: '#a78bfa' }
-        }
+        style={style}
       >
         {status === 'syncing' ? (
           <>
@@ -73,7 +74,7 @@ export function WhoopSyncButton({ lastSyncedAt }: Props) {
         )}
       </button>
       {syncedLabel && status === 'idle' && (
-        <span className="text-[10px]" style={{ color: '#4a4268' }}>
+        <span className="text-[10px]" style={{ color: 'var(--text-dim)' }}>
           {syncedLabel}
         </span>
       )}

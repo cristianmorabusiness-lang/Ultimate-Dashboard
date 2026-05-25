@@ -23,15 +23,15 @@ interface SessionExercise {
 interface SessionCoachData { session_note: string; exercises: SessionExercise[] }
 
 const TOOLTIP = {
-  backgroundColor: '#0e0e1f', border: '1px solid rgba(139,92,246,0.3)',
-  borderRadius: '10px', fontSize: '11px', color: '#ede9fe', boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+  backgroundColor: 'var(--chart-tooltip-bg)', border: '1px solid var(--chart-tooltip-border)',
+  borderRadius: '8px', fontSize: '11px', color: 'var(--text)', boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
 }
 
 const SESSION_TYPES = [
-  { key: 'Torso A', label: 'Torso A', color: '#ef4444', bg: 'rgba(239,68,68,0.15)' },
-  { key: 'Limbs',   label: 'Limbs',   color: '#22c55e', bg: 'rgba(34,197,94,0.15)' },
-  { key: 'Torso B', label: 'Torso B', color: '#3b82f6', bg: 'rgba(59,130,246,0.15)' },
-  { key: 'Torso C', label: 'Torso C', color: '#a855f7', bg: 'rgba(168,85,247,0.15)' },
+  { key: 'Torso A', label: 'Torso A', color: 'var(--danger)',  bg: 'var(--danger-bg)' },
+  { key: 'Limbs',   label: 'Limbs',   color: 'var(--success)', bg: 'var(--success-bg)' },
+  { key: 'Torso B', label: 'Torso B', color: 'var(--info)',    bg: 'var(--info-bg)' },
+  { key: 'Torso C', label: 'Torso C', color: 'var(--accent)',  bg: 'var(--accent-bg)' },
 ]
 
 function findSessionType(title: string | null | undefined) {
@@ -74,6 +74,13 @@ export default function WorkoutHistoryPage() {
   const [addRpe, setAddRpe] = useState('')
   const [addingSet, setAddingSet] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [editingSetId, setEditingSetId] = useState<string | null>(null)
+  const [editEx, setEditEx] = useState('')
+  const [editReps, setEditReps] = useState('')
+  const [editWeight, setEditWeight] = useState('')
+  const [editRpe, setEditRpe] = useState('')
+  const [savingSet, setSavingSet] = useState(false)
+  const [deletingSetId, setDeletingSetId] = useState<string | null>(null)
 
   useEffect(() => {
     Promise.all([
@@ -183,6 +190,50 @@ export default function WorkoutHistoryPage() {
     setAddingSet(false)
   }
 
+  function startEditSet(s: WorkoutSet) {
+    setEditingSetId(s.id)
+    setEditEx(s.exercise_name)
+    setEditReps(s.reps != null ? String(s.reps) : '')
+    setEditWeight(s.weight_kg != null ? String(s.weight_kg) : '')
+    setEditRpe(s.rpe != null ? String(s.rpe) : '')
+  }
+
+  function cancelEditSet() {
+    setEditingSetId(null)
+  }
+
+  async function saveEditSet(setId: string) {
+    if (!editEx.trim()) return
+    setSavingSet(true)
+    const res = await fetch(`/api/workouts/sets/${setId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        exercise_name: editEx.trim(),
+        reps: editReps === '' ? null : parseInt(editReps),
+        weight_kg: editWeight === '' ? null : parseFloat(editWeight),
+        rpe: editRpe === '' ? null : parseInt(editRpe),
+      }),
+    })
+    if (res.ok) {
+      const refresh = await fetch('/api/workouts/history?limit=90').then((r) => r.json())
+      if (refresh.workouts) setWorkouts(refresh.workouts)
+      setEditingSetId(null)
+    }
+    setSavingSet(false)
+  }
+
+  async function deleteSet(setId: string) {
+    if (!confirm('Eliminare questa serie?')) return
+    setDeletingSetId(setId)
+    const res = await fetch(`/api/workouts/sets/${setId}`, { method: 'DELETE' })
+    if (res.ok) {
+      const refresh = await fetch('/api/workouts/history?limit=90').then((r) => r.json())
+      if (refresh.workouts) setWorkouts(refresh.workouts)
+    }
+    setDeletingSetId(null)
+  }
+
   const WORKOUT_LABELS: Record<string, string> = {
     strength: 'Forza', cardio: 'Cardio', hiit: 'HIIT',
     mobility: 'Mobilità', torso_limbs_4x: 'Torso Limbs 4×',
@@ -234,14 +285,14 @@ export default function WorkoutHistoryPage() {
   return (
     <div className="p-4 md:p-6 max-w-3xl mx-auto space-y-5">
       <div>
-        <h1 className="font-display text-xl md:text-2xl font-bold tracking-tight" style={{ color: '#ede9fe' }}>
+        <h1 className="font-display text-xl md:text-2xl font-bold tracking-tight" style={{ color: 'var(--text)' }}>
           Storico Workout
         </h1>
-        <p className="text-sm mt-0.5" style={{ color: '#8b7faa' }}>Analisi e progressione</p>
+        <p className="text-sm mt-0.5" style={{ color: 'var(--text-muted)' }}>Analisi e progressione</p>
       </div>
 
       {/* ── Mode toggle ── */}
-      <div className="flex gap-1 p-1 rounded-xl" style={{ background: 'rgba(139,92,246,0.06)', border: '1px solid rgba(109,40,217,0.15)' }}>
+      <div className="flex gap-1 p-1 rounded-lg" style={{ background: 'var(--surface-soft)', border: '1px solid var(--border)' }}>
         {[
           { key: 'session',  label: 'Per Sessione', icon: '📋' },
           { key: 'exercise', label: 'Per Esercizio', icon: '📈' },
@@ -250,12 +301,12 @@ export default function WorkoutHistoryPage() {
           <button
             key={m.key}
             onClick={() => setMode(m.key as 'session' | 'exercise' | 'calendar')}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all"
+            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-md text-xs font-semibold transition-all"
             style={mode === m.key ? {
-              background: 'rgba(124,58,237,0.2)',
-              color: '#d8b4fe',
-              boxShadow: 'inset 0 0 0 1px rgba(124,58,237,0.4)',
-            } : { color: '#6b5f8a' }}
+              background: 'var(--surface-1)',
+              color: 'var(--accent)',
+              boxShadow: 'inset 0 0 0 1px var(--accent-border)',
+            } : { color: 'var(--text-muted)' }}
           >
             <span>{m.icon}</span>{m.label}
           </button>
@@ -269,7 +320,7 @@ export default function WorkoutHistoryPage() {
         <div className="card p-5 space-y-5">
           <div>
             <p className="section-label mb-1">Analisi Sessione Completa</p>
-            <p className="text-xs" style={{ color: '#6b5f8a' }}>
+            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
               Seleziona una giornata — l&apos;AI analizza l&apos;ultima sessione e ti dice cosa aggiustare
             </p>
           </div>
@@ -280,75 +331,71 @@ export default function WorkoutHistoryPage() {
                 key={s.key}
                 onClick={() => getSessionCoach(s.key)}
                 disabled={sessionLoading && selectedSession === s.key}
-                className="flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all"
+                className="flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all"
                 style={selectedSession === s.key ? {
                   background: s.bg,
-                  border: `1px solid ${s.color}55`,
-                  color: '#ede9fe',
+                  border: `1px solid ${s.color}`,
+                  color: 'var(--text)',
                 } : {
-                  background: 'rgba(255,255,255,0.02)',
-                  border: '1px solid rgba(109,40,217,0.15)',
-                  color: '#8b7faa',
+                  background: 'var(--surface-soft)',
+                  border: '1px solid var(--border)',
+                  color: 'var(--text-muted)',
                 }}
               >
-                <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: s.color }} />
+                <span className="w-2 h-2 rounded-full shrink-0" style={{ background: s.color }} />
                 <span className="font-semibold text-sm">{s.label}</span>
                 {sessionLoading && selectedSession === s.key && (
-                  <span className="ml-auto text-xs" style={{ color: '#6b5f8a' }}>analisi...</span>
+                  <span className="ml-auto text-xs" style={{ color: 'var(--text-muted)' }}>analisi...</span>
                 )}
               </button>
             ))}
           </div>
 
           {sessionError && (
-            <p className="text-sm text-center" style={{ color: '#f87171' }}>{sessionError}</p>
+            <p className="text-sm text-center" style={{ color: 'var(--danger)' }}>{sessionError}</p>
           )}
 
           {sessionCoach && !sessionLoading && (
-            <div className="space-y-4">
+            <div className="space-y-4 animate-fade-in">
               <div className="flex items-center justify-between">
-                <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: '#a78bfa' }}>
+                <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--accent)' }}>
                   Piano per la prossima {selectedSession}
                 </p>
                 {sessionDate && (
-                  <p className="text-[10px] font-mono" style={{ color: '#4a4268' }}>
+                  <p className="text-[10px] font-mono" style={{ color: 'var(--text-dim)' }}>
                     basato su {sessionDate}
                   </p>
                 )}
               </div>
 
-              <div className="p-3 rounded-xl" style={{ background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.2)' }}>
-                <p className="text-sm italic" style={{ color: '#b8add2' }}>{sessionCoach.session_note}</p>
+              <div className="p-3 rounded-lg" style={{ background: 'var(--accent-bg)', border: '1px solid var(--accent-border)' }}>
+                <p className="text-sm italic" style={{ color: 'var(--text-secondary)' }}>{sessionCoach.session_note}</p>
               </div>
 
               <div className="space-y-2">
                 {sessionCoach.exercises.map((ex, i) => (
-                  <div key={i} className="rounded-xl overflow-hidden" style={{ border: '1px solid rgba(109,40,217,0.15)' }}>
-                    <div className="px-4 py-2.5 flex items-center justify-between"
-                      style={{ background: 'rgba(124,58,237,0.06)' }}>
-                      <p className="text-sm font-semibold" style={{ color: '#d8b4fe' }}>{ex.exercise}</p>
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full"
-                        style={{ background: 'rgba(124,58,237,0.15)', color: '#a78bfa' }}>
-                        {ex.adjustment}
-                      </span>
+                  <div key={i} className="rounded-lg overflow-hidden" style={{ border: '1px solid var(--border)' }}>
+                    <div className="px-4 py-2.5 flex items-center justify-between" style={{ background: 'var(--surface-soft)' }}>
+                      <p className="text-sm font-semibold" style={{ color: 'var(--text)' }}>{ex.exercise}</p>
+                      <span className="pill pill-accent">{ex.adjustment}</span>
                     </div>
                     <div className="px-4 py-3 grid grid-cols-3 gap-3">
                       <div>
-                        <p className="text-[9px] uppercase tracking-wide mb-1" style={{ color: '#4a4268' }}>Ultima sess.</p>
-                        <p className="font-mono text-xs" style={{ color: '#8b7faa' }}>{ex.last_best}</p>
+                        <p className="text-[9px] uppercase tracking-wide mb-1" style={{ color: 'var(--text-muted)' }}>Ultima sess.</p>
+                        <p className="font-mono text-xs" style={{ color: 'var(--text-secondary)' }}>{ex.last_best}</p>
                       </div>
                       <div>
-                        <p className="text-[9px] uppercase tracking-wide mb-1" style={{ color: '#4a4268' }}>Prossima</p>
-                        <p className="font-mono text-sm font-bold" style={{ color: '#c4b5fd' }}>
+                        <p className="text-[9px] uppercase tracking-wide mb-1" style={{ color: 'var(--text-muted)' }}>Prossima</p>
+                        <p className="font-mono text-sm font-bold" style={{ color: 'var(--accent)' }}>
                           {ex.suggested_weight ? `${ex.suggested_weight}kg` : '—'}
-                          <span className="text-xs font-normal ml-1" style={{ color: '#6b5f8a' }}>
+                          <span className="text-xs font-normal ml-1" style={{ color: 'var(--text-muted)' }}>
                             × {ex.suggested_reps}
                           </span>
                         </p>
                       </div>
                       <div>
-                        <p className="text-[9px] uppercase tracking-wide mb-1" style={{ color: '#4a4268' }}>Nota</p>
-                        <p className="text-[11px] leading-snug" style={{ color: '#8b7faa' }}>{ex.note}</p>
+                        <p className="text-[9px] uppercase tracking-wide mb-1" style={{ color: 'var(--text-muted)' }}>Nota</p>
+                        <p className="text-[11px] leading-snug" style={{ color: 'var(--text-secondary)' }}>{ex.note}</p>
                       </div>
                     </div>
                   </div>
@@ -359,7 +406,7 @@ export default function WorkoutHistoryPage() {
 
           {!sessionCoach && !sessionLoading && !sessionError && (
             <div className="py-8 text-center">
-              <p className="text-sm" style={{ color: '#4a4268' }}>Seleziona una sessione per analizzarla</p>
+              <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Seleziona una sessione per analizzarla</p>
             </div>
           )}
         </div>
@@ -372,7 +419,7 @@ export default function WorkoutHistoryPage() {
         <div className="card p-5 space-y-4">
           <div>
             <p className="section-label mb-1">Analisi Esercizio</p>
-            <p className="text-xs" style={{ color: '#6b5f8a' }}>Progressione dettagliata e coaching per un singolo esercizio</p>
+            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Progressione dettagliata e coaching per un singolo esercizio</p>
           </div>
 
           <select value={selectedEx} onChange={(e) => setSelectedEx(e.target.value)} className="inp">
@@ -381,16 +428,16 @@ export default function WorkoutHistoryPage() {
           </select>
 
           {selectedEx && pr && (
-            <div className="flex items-center gap-3 p-3 rounded-xl"
-              style={{ background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.3)' }}>
+            <div className="flex items-center gap-3 p-3 rounded-lg"
+              style={{ background: 'var(--accent-bg)', border: '1px solid var(--accent-border)' }}>
               <span className="text-lg">🏆</span>
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: '#a78bfa' }}>
+                <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--accent)' }}>
                   Personal Record
                 </p>
-                <p className="font-mono text-base font-bold" style={{ color: '#ede9fe' }}>
+                <p className="font-mono text-base font-bold" style={{ color: 'var(--text)' }}>
                   {pr.weight_kg}kg × {pr.reps} reps
-                  <span className="text-xs font-normal ml-2" style={{ color: '#8b7faa' }}>{pr.date}</span>
+                  <span className="text-xs font-normal ml-2" style={{ color: 'var(--text-muted)' }}>{pr.date}</span>
                 </p>
               </div>
             </div>
@@ -399,33 +446,33 @@ export default function WorkoutHistoryPage() {
           {selectedEx && progression.length > 0 && (
             <>
               <div className="space-y-2">
-                <p className="text-xs font-semibold" style={{ color: '#8b7faa' }}>Carico massimo per sessione</p>
+                <p className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>Carico massimo per sessione</p>
                 <ResponsiveContainer width="100%" height={160}>
                   <LineChart data={progression.map((p) => ({ ...p, date: p.date.slice(5) }))}
                     margin={{ top: 4, right: 8, bottom: 0, left: 0 }}>
-                    <XAxis dataKey="date" tick={{ fill: '#5e5479', fontSize: 10 }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
-                    <YAxis tick={{ fill: '#5e5479', fontSize: 10 }} axisLine={false} tickLine={false} width={36}
+                    <XAxis dataKey="date" tick={{ fill: 'var(--chart-axis)', fontSize: 10 }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
+                    <YAxis tick={{ fill: 'var(--chart-axis)', fontSize: 10 }} axisLine={false} tickLine={false} width={36}
                       tickFormatter={(v) => `${v}kg`} />
                     <Tooltip contentStyle={TOOLTIP} formatter={(v: number) => [`${v}kg`, 'Max peso']} />
                     {pr?.weight_kg && (
-                      <ReferenceLine y={pr.weight_kg} stroke="rgba(139,92,246,0.4)" strokeDasharray="4 3" />
+                      <ReferenceLine y={pr.weight_kg} stroke="var(--chart-grid)" strokeDasharray="4 3" />
                     )}
-                    <Line type="monotone" dataKey="maxWeight" stroke="#8b5cf6" strokeWidth={2}
-                      dot={{ fill: '#8b5cf6', r: 3, strokeWidth: 0 }}
-                      activeDot={{ r: 5, fill: '#c4b5fd', strokeWidth: 0 }} />
+                    <Line type="monotone" dataKey="maxWeight" stroke="var(--accent)" strokeWidth={2}
+                      dot={{ fill: 'var(--accent)', r: 3, strokeWidth: 0 }}
+                      activeDot={{ r: 5, fill: 'var(--accent-soft)', strokeWidth: 0 }} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
 
               <div className="space-y-2">
-                <p className="text-xs font-semibold" style={{ color: '#8b7faa' }}>Volume per sessione (kg totali)</p>
+                <p className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>Volume per sessione (kg totali)</p>
                 <ResponsiveContainer width="100%" height={110}>
                   <LineChart data={progression.map((p) => ({ ...p, date: p.date.slice(5) }))}
                     margin={{ top: 4, right: 8, bottom: 0, left: 0 }}>
-                    <XAxis dataKey="date" tick={{ fill: '#5e5479', fontSize: 10 }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
-                    <YAxis tick={{ fill: '#5e5479', fontSize: 10 }} axisLine={false} tickLine={false} width={44} />
+                    <XAxis dataKey="date" tick={{ fill: 'var(--chart-axis)', fontSize: 10 }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
+                    <YAxis tick={{ fill: 'var(--chart-axis)', fontSize: 10 }} axisLine={false} tickLine={false} width={44} />
                     <Tooltip contentStyle={TOOLTIP} formatter={(v: number) => [`${v}kg`, 'Volume']} />
-                    <Line type="monotone" dataKey="volume" stroke="#fb923c" strokeWidth={2} dot={false} />
+                    <Line type="monotone" dataKey="volume" stroke="var(--warning)" strokeWidth={2} dot={false} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
@@ -435,15 +482,15 @@ export default function WorkoutHistoryPage() {
                   {exCoachLoading ? 'Analisi in corso...' : '🤖 Coaching AI per questo esercizio'}
                 </button>
                 {exCoach && (
-                  <div className="mt-3 rounded-xl p-4 space-y-2"
-                    style={{ background: 'rgba(139,92,246,0.07)', border: '1px solid rgba(139,92,246,0.2)' }}>
+                  <div className="mt-3 rounded-lg p-4 space-y-2"
+                    style={{ background: 'var(--accent-bg)', border: '1px solid var(--accent-border)' }}>
                     {exCoach.suggested_weight && (
-                      <p className="font-mono text-lg font-bold" style={{ color: '#c4b5fd' }}>
+                      <p className="font-mono text-lg font-bold" style={{ color: 'var(--accent)' }}>
                         {exCoach.suggested_weight}kg · {exCoach.suggested_reps}
                       </p>
                     )}
-                    <p className="text-sm" style={{ color: '#b8add2' }}>{exCoach.rationale}</p>
-                    <p className="text-xs italic" style={{ color: '#8b7faa' }}>{exCoach.progression_note}</p>
+                    <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{exCoach.rationale}</p>
+                    <p className="text-xs italic" style={{ color: 'var(--text-muted)' }}>{exCoach.progression_note}</p>
                   </div>
                 )}
               </div>
@@ -451,12 +498,12 @@ export default function WorkoutHistoryPage() {
           )}
 
           {selectedEx && progression.length === 0 && (
-            <p className="text-sm" style={{ color: '#8b7faa' }}>Nessun dato trovato per questo esercizio.</p>
+            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Nessun dato trovato per questo esercizio.</p>
           )}
 
           {!selectedEx && (
             <div className="py-6 text-center">
-              <p className="text-sm" style={{ color: '#4a4268' }}>Seleziona un esercizio per vedere la progressione</p>
+              <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Seleziona un esercizio per vedere la progressione</p>
             </div>
           )}
         </div>
@@ -472,13 +519,13 @@ export default function WorkoutHistoryPage() {
             {/* Stats row */}
             <div className="grid grid-cols-3 gap-3">
               {[
-                { label: 'Sessioni (90gg)', value: totalSessions, color: '#a78bfa' },
-                { label: 'Streak attuale', value: `${streak}gg`, color: streak >= 3 ? '#22c55e' : '#fb923c' },
-                { label: 'Media/settimana', value: (totalSessions / 13).toFixed(1), color: '#60a5fa' },
+                { label: 'Sessioni (90gg)', value: totalSessions, color: 'var(--accent)' },
+                { label: 'Streak attuale', value: `${streak}gg`, color: streak >= 3 ? 'var(--success)' : 'var(--warning)' },
+                { label: 'Media/settimana', value: (totalSessions / 13).toFixed(1), color: 'var(--info)' },
               ].map((s) => (
                 <div key={s.label} className="card p-3 text-center">
                   <p className="font-mono text-xl font-bold" style={{ color: s.color }}>{s.value}</p>
-                  <p className="text-[10px] mt-0.5 uppercase tracking-wide" style={{ color: '#4a4268' }}>{s.label}</p>
+                  <p className="text-[10px] mt-0.5 uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>{s.label}</p>
                 </div>
               ))}
             </div>
@@ -487,13 +534,13 @@ export default function WorkoutHistoryPage() {
             <div className="flex flex-wrap gap-3">
               {SESSION_TYPES.map((s) => (
                 <div key={s.key} className="flex items-center gap-1.5">
-                  <span className="w-3 h-3 rounded-sm" style={{ background: s.color, opacity: 0.85 }} />
-                  <span className="text-[11px]" style={{ color: '#6b5f8a' }}>{s.label}</span>
+                  <span className="w-3 h-3 rounded-sm" style={{ background: s.color }} />
+                  <span className="text-[11px]" style={{ color: 'var(--text-muted)' }}>{s.label}</span>
                 </div>
               ))}
               <div className="flex items-center gap-1.5">
-                <span className="w-3 h-3 rounded-sm" style={{ background: '#fb923c', opacity: 0.85 }} />
-                <span className="text-[11px]" style={{ color: '#6b5f8a' }}>Altro</span>
+                <span className="w-3 h-3 rounded-sm" style={{ background: 'var(--warning)' }} />
+                <span className="text-[11px]" style={{ color: 'var(--text-muted)' }}>Altro</span>
               </div>
             </div>
 
@@ -503,7 +550,7 @@ export default function WorkoutHistoryPage() {
               <div className="grid gap-1 mb-1" style={{ gridTemplateColumns: `repeat(7, minmax(0, 1fr))` }}>
                 {DAY_LABELS.map((d, i) => (
                   <div key={i} className="text-center text-[9px] font-semibold uppercase"
-                    style={{ color: '#4a4268' }}>
+                    style={{ color: 'var(--text-muted)' }}>
                     {d}
                   </div>
                 ))}
@@ -523,13 +570,13 @@ export default function WorkoutHistoryPage() {
                           title={day.workout ? `${day.date}: ${day.workout.title ?? day.workout.workout_type}` : day.date}
                           className="aspect-square rounded-sm transition-transform hover:scale-110"
                           style={{
-                            background: color ?? 'rgba(139,92,246,0.06)',
+                            background: color ?? 'var(--surface-soft)',
                             opacity: color ? 0.85 : 1,
                             border: isToday
-                              ? '1.5px solid rgba(167,139,250,0.7)'
+                              ? '1.5px solid var(--accent)'
                               : color
                                 ? '1px solid transparent'
-                                : '1px solid rgba(109,40,217,0.1)',
+                                : '1px solid var(--border)',
                             cursor: day.workout ? 'pointer' : 'default',
                           }}
                         />
@@ -539,7 +586,7 @@ export default function WorkoutHistoryPage() {
                 ))}
               </div>
 
-              <p className="text-[10px] mt-3 text-center" style={{ color: '#3d3459' }}>
+              <p className="text-[10px] mt-3 text-center" style={{ color: 'var(--text-dim)' }}>
                 Ultimi 90 giorni · {today}
               </p>
             </div>
@@ -555,13 +602,13 @@ export default function WorkoutHistoryPage() {
                     <div className="flex items-center justify-between mb-1">
                       <div className="flex items-center gap-2">
                         <span className="w-2 h-2 rounded-sm" style={{ background: s.color }} />
-                        <span className="text-xs" style={{ color: '#8b7faa' }}>{s.label}</span>
+                        <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>{s.label}</span>
                       </div>
-                      <span className="font-mono text-xs" style={{ color: '#6b5f8a' }}>{count}×</span>
+                      <span className="font-mono text-xs" style={{ color: 'var(--text-muted)' }}>{count}×</span>
                     </div>
-                    <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(139,92,246,0.08)' }}>
+                    <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.04)' }}>
                       <div className="h-full rounded-full transition-all"
-                        style={{ width: `${pct * 100}%`, background: s.color, opacity: 0.7 }} />
+                        style={{ width: `${pct * 100}%`, background: s.color, opacity: 0.8 }} />
                     </div>
                   </div>
                 )
@@ -575,11 +622,11 @@ export default function WorkoutHistoryPage() {
       {mode !== 'calendar' && (
         <div className="space-y-3">
           <p className="section-label">Sessioni Recenti ({workouts.length})</p>
-          {loading && <p className="text-sm" style={{ color: '#8b7faa' }}>Caricamento...</p>}
+          {loading && <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Caricamento...</p>}
 
           {!loading && workouts.length === 0 && (
             <div className="card p-10 text-center">
-              <p style={{ color: '#8b7faa' }}>Nessun workout ancora.</p>
+              <p style={{ color: 'var(--text-muted)' }}>Nessun workout ancora.</p>
             </div>
           )}
 
@@ -595,19 +642,19 @@ export default function WorkoutHistoryPage() {
                   <button onClick={() => toggleExpand(w.id)} className="flex items-center gap-3 min-w-0 flex-1 text-left">
                     {sColor && <span className="w-2 h-2 rounded-full shrink-0" style={{ background: sColor }} />}
                     <div>
-                      <span className="text-sm font-semibold" style={{ color: '#d8b4fe' }}>
+                      <span className="text-sm font-semibold" style={{ color: 'var(--text)' }}>
                         {w.title ?? WORKOUT_LABELS[w.workout_type] ?? w.workout_type}
                       </span>
-                      <p className="text-xs mt-0.5 font-mono" style={{ color: '#5e5479' }}>{w.logged_date}</p>
+                      <p className="text-xs mt-0.5 font-mono" style={{ color: 'var(--text-muted)' }}>{w.logged_date}</p>
                     </div>
                   </button>
                   <div className="flex items-center gap-3 shrink-0">
                     {w.volume_kg > 0 && (
                       <div className="text-right">
-                        <p className="font-mono text-sm font-semibold" style={{ color: '#fb923c' }}>
-                          {w.volume_kg.toLocaleString()}<span className="text-[10px] ml-0.5" style={{ color: '#5e5479' }}>kg</span>
+                        <p className="font-mono text-sm font-semibold" style={{ color: 'var(--warning)' }}>
+                          {w.volume_kg.toLocaleString()}<span className="text-[10px] ml-0.5" style={{ color: 'var(--text-dim)' }}>kg</span>
                         </p>
-                        <p className="text-[10px]" style={{ color: '#5e5479' }}>volume</p>
+                        <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>volume</p>
                       </div>
                     )}
                     {/* Delete button */}
@@ -616,9 +663,9 @@ export default function WorkoutHistoryPage() {
                       disabled={deletingId === w.id}
                       title="Elimina sessione"
                       className="p-1.5 rounded-lg transition-colors"
-                      style={{ color: '#4a4268' }}
-                      onMouseEnter={(e) => (e.currentTarget.style.color = '#f87171')}
-                      onMouseLeave={(e) => (e.currentTarget.style.color = '#4a4268')}
+                      style={{ color: 'var(--text-muted)' }}
+                      onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--danger)')}
+                      onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}
                     >
                       {deletingId === w.id ? (
                         <span className="text-[10px]">...</span>
@@ -628,7 +675,7 @@ export default function WorkoutHistoryPage() {
                         </svg>
                       )}
                     </button>
-                    <button onClick={() => toggleExpand(w.id)} style={{ color: '#5e5479', fontSize: 12 }}>
+                    <button onClick={() => toggleExpand(w.id)} style={{ color: 'var(--text-muted)', fontSize: 12 }}>
                       {open ? '▲' : '▼'}
                     </button>
                   </div>
@@ -638,54 +685,163 @@ export default function WorkoutHistoryPage() {
                 {exNames.length > 0 && !open && (
                   <div className="px-4 pb-3 flex flex-wrap gap-1">
                     {exNames.slice(0, 5).map((ex) => (
-                      <span key={ex} className="text-[10px] px-2 py-0.5 rounded-full"
-                        style={{ background: 'rgba(139,92,246,0.06)', border: '1px solid rgba(139,92,246,0.15)', color: '#8b7faa' }}>
-                        {ex}
-                      </span>
+                      <span key={ex} className="pill">{ex}</span>
                     ))}
-                    {exNames.length > 5 && <span className="text-[10px]" style={{ color: '#5e5479' }}>+{exNames.length - 5}</span>}
+                    {exNames.length > 5 && <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>+{exNames.length - 5}</span>}
                   </div>
                 )}
 
                 {/* Expanded: sets table */}
                 {open && (
-                  <div style={{ borderTop: '1px solid rgba(139,92,246,0.1)' }}>
+                  <div style={{ borderTop: '1px solid var(--border)' }}>
                     {w.sets.length > 0 && (
                       <div className="overflow-x-auto">
-                        <table className="w-full text-sm min-w-[340px]">
+                        <table className="w-full text-sm min-w-[380px]">
                           <thead>
-                            <tr style={{ borderBottom: '1px solid rgba(139,92,246,0.08)' }}>
-                              {['Esercizio', 'S', 'Reps', 'kg', 'RPE'].map((h, i) => (
-                                <th key={h} className={`py-2 text-[10px] uppercase tracking-wide font-semibold ${i === 0 ? 'text-left px-4' : 'text-right px-2'}`}
-                                  style={{ color: '#4a4268' }}>{h}</th>
+                            <tr style={{ borderBottom: '1px solid var(--border)' }}>
+                              {['Esercizio', 'S', 'Reps', 'kg', 'RPE', ''].map((h, i) => (
+                                <th key={i} className={`py-2 text-[10px] uppercase tracking-wide font-semibold ${i === 0 ? 'text-left px-4' : 'text-right px-2'}`}
+                                  style={{ color: 'var(--text-muted)' }}>{h}</th>
                               ))}
                             </tr>
                           </thead>
                           <tbody>
-                            {w.sets.map((s) => (
-                              <tr key={s.id} style={{ borderBottom: '1px solid rgba(139,92,246,0.05)' }}>
-                                <td className="py-2 px-4 text-sm" style={{ color: '#c4b5fd' }}>{s.exercise_name}</td>
-                                <td className="py-2 px-2 text-right font-mono text-xs" style={{ color: '#5e5479' }}>{s.set_number}</td>
-                                <td className="py-2 px-2 text-right font-mono text-sm font-semibold" style={{ color: '#ede9fe' }}>{s.reps ?? '—'}</td>
-                                <td className="py-2 px-2 text-right font-mono text-sm font-semibold" style={{ color: '#ede9fe' }}>{s.weight_kg ?? '—'}</td>
-                                <td className="py-2 px-2 text-right font-mono text-xs" style={{ color: '#8b7faa' }}>{s.rpe ?? '—'}</td>
-                              </tr>
-                            ))}
+                            {w.sets.map((s) => {
+                              const isEditing = editingSetId === s.id
+                              if (isEditing) {
+                                return (
+                                  <tr key={s.id} style={{ borderBottom: '1px solid var(--divider)', background: 'var(--accent-bg)' }}>
+                                    <td className="py-1.5 px-4">
+                                      <input
+                                        type="text"
+                                        value={editEx}
+                                        onChange={(e) => setEditEx(e.target.value)}
+                                        className="inp"
+                                        style={{ padding: '4px 8px', fontSize: 12 }}
+                                      />
+                                    </td>
+                                    <td className="py-1.5 px-2 text-right font-mono text-xs" style={{ color: 'var(--text-muted)' }}>{s.set_number}</td>
+                                    <td className="py-1.5 px-1">
+                                      <input
+                                        type="number"
+                                        value={editReps}
+                                        onChange={(e) => setEditReps(e.target.value)}
+                                        className="inp text-right"
+                                        style={{ padding: '4px 6px', fontSize: 12, width: 56 }}
+                                      />
+                                    </td>
+                                    <td className="py-1.5 px-1">
+                                      <input
+                                        type="number"
+                                        step="0.5"
+                                        value={editWeight}
+                                        onChange={(e) => setEditWeight(e.target.value)}
+                                        className="inp text-right"
+                                        style={{ padding: '4px 6px', fontSize: 12, width: 64 }}
+                                      />
+                                    </td>
+                                    <td className="py-1.5 px-1">
+                                      <input
+                                        type="number"
+                                        min="1"
+                                        max="10"
+                                        value={editRpe}
+                                        onChange={(e) => setEditRpe(e.target.value)}
+                                        className="inp text-right"
+                                        style={{ padding: '4px 6px', fontSize: 12, width: 48 }}
+                                      />
+                                    </td>
+                                    <td className="py-1.5 px-2">
+                                      <div className="flex items-center justify-end gap-1">
+                                        <button
+                                          onClick={() => saveEditSet(s.id)}
+                                          disabled={savingSet || !editEx.trim()}
+                                          title="Salva"
+                                          className="p-1 rounded transition-colors"
+                                          style={{ color: 'var(--success)' }}
+                                        >
+                                          {savingSet ? (
+                                            <span className="text-[10px]">...</span>
+                                          ) : (
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                              <path d="M5 13l4 4L19 7" />
+                                            </svg>
+                                          )}
+                                        </button>
+                                        <button
+                                          onClick={cancelEditSet}
+                                          title="Annulla"
+                                          className="p-1 rounded transition-colors"
+                                          style={{ color: 'var(--text-muted)' }}
+                                        >
+                                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                            <path d="M6 6l12 12M18 6L6 18" />
+                                          </svg>
+                                        </button>
+                                      </div>
+                                    </td>
+                                  </tr>
+                                )
+                              }
+                              return (
+                                <tr key={s.id} style={{ borderBottom: '1px solid var(--divider)' }}>
+                                  <td className="py-2 px-4 text-sm" style={{ color: 'var(--text-secondary)' }}>{s.exercise_name}</td>
+                                  <td className="py-2 px-2 text-right font-mono text-xs" style={{ color: 'var(--text-muted)' }}>{s.set_number}</td>
+                                  <td className="py-2 px-2 text-right font-mono text-sm font-semibold" style={{ color: 'var(--text)' }}>{s.reps ?? '—'}</td>
+                                  <td className="py-2 px-2 text-right font-mono text-sm font-semibold" style={{ color: 'var(--text)' }}>{s.weight_kg ?? '—'}</td>
+                                  <td className="py-2 px-2 text-right font-mono text-xs" style={{ color: 'var(--text-muted)' }}>{s.rpe ?? '—'}</td>
+                                  <td className="py-2 px-2">
+                                    <div className="flex items-center justify-end gap-1">
+                                      <button
+                                        onClick={() => startEditSet(s)}
+                                        title="Modifica serie"
+                                        className="p-1 rounded transition-colors"
+                                        style={{ color: 'var(--text-muted)' }}
+                                        onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--accent)')}
+                                        onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}
+                                      >
+                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                                        </svg>
+                                      </button>
+                                      <button
+                                        onClick={() => deleteSet(s.id)}
+                                        disabled={deletingSetId === s.id}
+                                        title="Elimina serie"
+                                        className="p-1 rounded transition-colors"
+                                        style={{ color: 'var(--text-muted)' }}
+                                        onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--danger)')}
+                                        onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}
+                                      >
+                                        {deletingSetId === s.id ? (
+                                          <span className="text-[10px]">...</span>
+                                        ) : (
+                                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                            <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
+                                          </svg>
+                                        )}
+                                      </button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              )
+                            })}
                           </tbody>
                         </table>
                       </div>
                     )}
                     {w.sets.length === 0 && (
-                      <p className="px-4 py-3 text-xs" style={{ color: '#5e5479' }}>Nessuna serie loggata.</p>
+                      <p className="px-4 py-3 text-xs" style={{ color: 'var(--text-muted)' }}>Nessuna serie loggata.</p>
                     )}
 
                     {/* Add exercise section */}
-                    <div className="px-4 py-3" style={{ borderTop: '1px solid rgba(139,92,246,0.08)' }}>
+                    <div className="px-4 py-3" style={{ borderTop: '1px solid var(--border)' }}>
                       {!isAdding ? (
                         <button
                           onClick={() => { setAddingTo(w.id); setAddExercise('') }}
                           className="text-xs font-semibold flex items-center gap-1.5 transition-colors"
-                          style={{ color: '#7c3aed' }}
+                          style={{ color: 'var(--accent)' }}
                         >
                           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                             <path d="M12 5v14M5 12h14" />
@@ -705,15 +861,15 @@ export default function WorkoutHistoryPage() {
                           />
                           <div className="grid grid-cols-3 gap-2">
                             <div>
-                              <p className="text-[10px] mb-1" style={{ color: '#6b5f8a' }}>Reps</p>
+                              <p className="text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>Reps</p>
                               <input type="number" value={addReps} onChange={(e) => setAddReps(e.target.value)} placeholder="12" className="inp" />
                             </div>
                             <div>
-                              <p className="text-[10px] mb-1" style={{ color: '#6b5f8a' }}>Peso (kg)</p>
+                              <p className="text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>Peso (kg)</p>
                               <input type="number" step="0.5" value={addWeight} onChange={(e) => setAddWeight(e.target.value)} placeholder="10" className="inp" />
                             </div>
                             <div>
-                              <p className="text-[10px] mb-1" style={{ color: '#6b5f8a' }}>RPE</p>
+                              <p className="text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>RPE</p>
                               <input type="number" min="1" max="10" value={addRpe} onChange={(e) => setAddRpe(e.target.value)} placeholder="8" className="inp" />
                             </div>
                           </div>

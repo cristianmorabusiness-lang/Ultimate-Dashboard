@@ -6,11 +6,11 @@ interface WeightPoint { logged_date: string; weight_kg: number }
 interface Props { data: WeightPoint[] }
 
 const TOOLTIP_STYLE = {
-  backgroundColor: '#0e0e1f',
-  border: '1px solid rgba(139,92,246,0.3)',
-  borderRadius: '10px',
+  backgroundColor: 'var(--chart-tooltip-bg)',
+  border: '1px solid var(--chart-tooltip-border)',
+  borderRadius: '8px',
   fontSize: '12px',
-  color: '#ede9fe',
+  color: 'var(--text)',
   boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
 }
 
@@ -20,38 +20,40 @@ export function WeightSparkline({ data }: Props) {
   const min = Math.min(...vals) - 0.5
   const max = Math.max(...vals) + 0.5
   const avg = Math.round((vals.reduce((a, b) => a + b, 0) / vals.length) * 10) / 10
+  const delta = Math.round((vals[vals.length - 1] - vals[0]) * 10) / 10
+  const deltaColor = delta < 0 ? 'var(--success)' : delta > 0 ? 'var(--warning)' : 'var(--text-muted)'
 
   return (
     <div>
-      <div className="flex items-center gap-3 md:gap-4 mb-3 flex-wrap">
+      <div className="flex items-center gap-4 md:gap-6 mb-3 flex-wrap">
         <div>
-          <p className="font-mono text-xl font-medium" style={{ color: '#c4b5fd' }}>
-            {vals[vals.length - 1]} <span className="text-xs" style={{ color: '#8b7faa' }}>kg</span>
+          <p className="font-mono text-xl font-medium" style={{ color: 'var(--text)' }}>
+            {vals[vals.length - 1]} <span className="text-xs" style={{ color: 'var(--text-muted)' }}>kg</span>
           </p>
-          <p className="text-[11px]" style={{ color: '#8b7faa' }}>Ultima rilevazione</p>
+          <p className="text-[11px]" style={{ color: 'var(--text-muted)' }}>Ultima rilevazione</p>
         </div>
         <div>
-          <p className="font-mono text-base" style={{ color: '#b8add2' }}>
-            {avg} <span className="text-xs" style={{ color: '#8b7faa' }}>kg</span>
+          <p className="font-mono text-base" style={{ color: 'var(--text-secondary)' }}>
+            {avg} <span className="text-xs" style={{ color: 'var(--text-muted)' }}>kg</span>
           </p>
-          <p className="text-[11px]" style={{ color: '#8b7faa' }}>Media 14gg</p>
+          <p className="text-[11px]" style={{ color: 'var(--text-muted)' }}>Media 14gg</p>
         </div>
         <div>
-          <p className="font-mono text-base" style={{ color: (vals[vals.length - 1] - vals[0]) < 0 ? '#a78bfa' : '#fb923c' }}>
-            {((vals[vals.length - 1] - vals[0]) >= 0 ? '+' : '')}{Math.round((vals[vals.length - 1] - vals[0]) * 10) / 10} kg
+          <p className="font-mono text-base" style={{ color: deltaColor }}>
+            {delta >= 0 ? '+' : ''}{delta} kg
           </p>
-          <p className="text-[11px]" style={{ color: '#8b7faa' }}>Variazione</p>
+          <p className="text-[11px]" style={{ color: 'var(--text-muted)' }}>Variazione</p>
         </div>
       </div>
       <ResponsiveContainer width="100%" height={110}>
         <LineChart data={formatted} margin={{ top: 4, right: 8, bottom: 0, left: 0 }}>
-          <XAxis dataKey="date" tick={{ fill: '#5e5479', fontSize: 10 }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
-          <YAxis domain={[min, max]} tick={{ fill: '#5e5479', fontSize: 10 }} axisLine={false} tickLine={false} width={38} tickFormatter={(v) => `${v}`} />
-          <ReferenceLine y={avg} stroke="rgba(139,92,246,0.3)" strokeDasharray="4 3" />
+          <XAxis dataKey="date" tick={{ fill: 'var(--chart-axis)', fontSize: 10 }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
+          <YAxis domain={[min, max]} tick={{ fill: 'var(--chart-axis)', fontSize: 10 }} axisLine={false} tickLine={false} width={38} tickFormatter={(v) => `${v}`} />
+          <ReferenceLine y={avg} stroke="var(--chart-grid)" strokeDasharray="4 3" />
           <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v: number) => [`${v} kg`, 'Peso']} labelFormatter={(l) => `Data: ${l}`} />
-          <Line type="monotone" dataKey="weight" stroke="#8b5cf6" strokeWidth={2}
-            dot={{ fill: '#8b5cf6', r: 2.5, strokeWidth: 0 }}
-            activeDot={{ r: 4, fill: '#c4b5fd', strokeWidth: 0 }} />
+          <Line type="monotone" dataKey="weight" stroke="var(--accent)" strokeWidth={2}
+            dot={{ fill: 'var(--accent)', r: 2.5, strokeWidth: 0 }}
+            activeDot={{ r: 4, fill: 'var(--accent-soft)', strokeWidth: 0 }} />
         </LineChart>
       </ResponsiveContainer>
     </div>

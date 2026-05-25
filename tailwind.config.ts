@@ -9,23 +9,35 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['var(--font-dm-sans)', 'system-ui', 'sans-serif'],
+        sans:    ['var(--font-dm-sans)', 'system-ui', 'sans-serif'],
         display: ['var(--font-syne)', 'system-ui', 'sans-serif'],
-        mono: ['var(--font-dm-mono)', 'monospace'],
+        mono:    ['var(--font-dm-mono)', 'monospace'],
       },
       colors: {
-        space: '#08080f',
-        card: '#0c0c1a',
-      },
-      borderColor: {
-        violet: {
-          dim: 'rgba(109, 40, 217, 0.22)',
-          glow: 'rgba(124, 58, 237, 0.45)',
+        bg:        'var(--bg)',
+        surface:   'var(--surface-1)',
+        elevated:  'var(--surface-2)',
+        border:    'var(--border)',
+        accent: {
+          DEFAULT: 'var(--accent)',
+          soft:    'var(--accent-soft)',
+          bg:      'var(--accent-bg)',
+          fg:      'var(--accent-fg)',
         },
+        text: {
+          DEFAULT:   'var(--text)',
+          secondary: 'var(--text-secondary)',
+          muted:     'var(--text-muted)',
+          dim:       'var(--text-dim)',
+        },
+        success: 'var(--success)',
+        warning: 'var(--warning)',
+        danger:  'var(--danger)',
+        info:    'var(--info)',
       },
       boxShadow: {
-        violet: '0 0 32px rgba(124, 58, 237, 0.15), 0 0 1px rgba(167, 139, 250, 0.2)',
-        'violet-sm': '0 0 16px rgba(124, 58, 237, 0.1)',
+        card: 'var(--shadow-card)',
+        elev: 'var(--shadow-elev)',
       },
     },
   },

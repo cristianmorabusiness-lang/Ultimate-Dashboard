@@ -13,9 +13,9 @@ interface DailySummary {
 interface Props { userId: string; today: string }
 
 const TONE = {
-  encouraging: { border: '#a78bfa', bg: 'rgba(167,139,250,0.06)', label: 'Ottimo', labelColor: '#c4b5fd' },
-  neutral:     { border: '#a78bfa', bg: 'rgba(167,139,250,0.06)', label: 'Neutro', labelColor: '#a78bfa' },
-  cautionary:  { border: '#fbbf24', bg: 'rgba(251,191,36,0.06)',  label: 'Attenzione', labelColor: '#fbbf24' },
+  encouraging: { color: 'var(--success)', bg: 'var(--success-bg)', border: 'var(--success-border)', label: 'Ottimo' },
+  neutral:     { color: 'var(--accent)',  bg: 'var(--accent-bg)',  border: 'var(--accent-border)',  label: 'Neutro' },
+  cautionary:  { color: 'var(--warning)', bg: 'var(--warning-bg)', border: 'var(--warning-border)', label: 'Attenzione' },
 }
 
 export function AISummaryCard({ userId, today }: Props) {
@@ -41,8 +41,7 @@ export function AISummaryCard({ userId, today }: Props) {
       <div className="flex items-center justify-between mb-4">
         <p className="section-label">AI Mentor</p>
         {summary && (
-          <span className="text-[11px] px-2 py-0.5 rounded-full font-medium"
-            style={{ background: `${tone.border}18`, color: tone.labelColor, border: `1px solid ${tone.border}30` }}>
+          <span className="pill" style={{ background: tone.bg, color: tone.color, borderColor: tone.border }}>
             {tone.label}
           </span>
         )}
@@ -52,24 +51,24 @@ export function AISummaryCard({ userId, today }: Props) {
         <div className="space-y-2.5 flex-1">
           {[75, 55, 85, 65, 40].map((w, i) => (
             <div key={i} className="h-2.5 rounded-full animate-pulse"
-              style={{ width: `${w}%`, background: 'rgba(139,92,246,0.12)' }} />
+              style={{ width: `${w}%`, background: 'rgba(255,255,255,0.04)' }} />
           ))}
         </div>
       )}
 
       {error && !loading && (
-        <p className="text-sm flex-1" style={{ color: '#8b7faa' }}>{error}</p>
+        <p className="text-sm flex-1" style={{ color: 'var(--text-muted)' }}>{error}</p>
       )}
 
       {summary && !loading && (
-        <div className="flex-1 rounded-xl p-4 space-y-3"
-          style={{ background: tone.bg, borderLeft: `3px solid ${tone.border}` }}>
-          <p className="text-sm leading-relaxed" style={{ color: '#ede9fe' }}>{summary.phase_note}</p>
-          <p className="text-sm leading-relaxed" style={{ color: '#b8add2' }}>{summary.recovery_insight}</p>
-          <p className="text-sm leading-relaxed" style={{ color: '#b8add2' }}>{summary.nutrition_feedback}</p>
-          <div className="pt-1 border-t" style={{ borderColor: 'rgba(139,92,246,0.15)' }}>
+        <div className="flex-1 rounded-lg p-4 space-y-3"
+          style={{ background: tone.bg, borderLeft: `2px solid ${tone.color}` }}>
+          <p className="text-sm leading-relaxed" style={{ color: 'var(--text)' }}>{summary.phase_note}</p>
+          <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{summary.recovery_insight}</p>
+          <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{summary.nutrition_feedback}</p>
+          <div className="pt-2.5" style={{ borderTop: '1px solid var(--border)' }}>
             <p className="section-label mb-1">Priorità oggi</p>
-            <p className="text-sm font-semibold" style={{ color: '#ede9fe' }}>{summary.priority_action}</p>
+            <p className="text-sm font-semibold" style={{ color: 'var(--text)' }}>{summary.priority_action}</p>
           </div>
         </div>
       )}

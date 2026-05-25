@@ -64,10 +64,10 @@ export default function LogWeightPage() {
   return (
     <div className="p-4 md:p-6 max-w-2xl mx-auto space-y-4 md:space-y-5">
       <div>
-        <h1 className="font-display text-xl md:text-2xl font-bold tracking-tight" style={{ color: '#ede9fe' }}>
+        <h1 className="font-display text-xl md:text-2xl font-bold tracking-tight" style={{ color: 'var(--text)' }}>
           Log Peso
         </h1>
-        <p className="text-sm mt-0.5 capitalize" style={{ color: '#8b7faa' }}>{todayLabel}</p>
+        <p className="text-sm mt-0.5 capitalize" style={{ color: 'var(--text-muted)' }}>{todayLabel}</p>
       </div>
 
       <div className="card p-5">
@@ -75,7 +75,7 @@ export default function LogWeightPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs mb-1.5" style={{ color: '#8b7faa' }}>Peso (kg) *</label>
+              <label className="block text-xs mb-1.5" style={{ color: 'var(--text-muted)' }}>Peso (kg) *</label>
               <input
                 type="number"
                 step="0.1"
@@ -89,7 +89,7 @@ export default function LogWeightPage() {
               />
             </div>
             <div>
-              <label className="block text-xs mb-1.5" style={{ color: '#8b7faa' }}>% Grasso (opzionale)</label>
+              <label className="block text-xs mb-1.5" style={{ color: 'var(--text-muted)' }}>% Grasso (opzionale)</label>
               <input
                 type="number"
                 step="0.1"
@@ -103,7 +103,7 @@ export default function LogWeightPage() {
             </div>
           </div>
           <div>
-            <label className="block text-xs mb-1.5" style={{ color: '#8b7faa' }}>Nota (opzionale)</label>
+            <label className="block text-xs mb-1.5" style={{ color: 'var(--text-muted)' }}>Nota (opzionale)</label>
             <input
               type="text"
               value={note}
@@ -112,7 +112,7 @@ export default function LogWeightPage() {
               className="inp"
             />
           </div>
-          {error && <p className="text-sm" style={{ color: '#f87171' }}>{error}</p>}
+          {error && <p className="text-sm" style={{ color: 'var(--danger)' }}>{error}</p>}
           <button type="submit" disabled={saving || !weight} className="btn-primary">
             {saving ? 'Salvataggio...' : 'Salva'}
           </button>
@@ -128,30 +128,29 @@ export default function LogWeightPage() {
 
       {!loading && entries.length > 0 && (
         <div className="card overflow-hidden p-0">
-          <div className="px-5 py-3" style={{ borderBottom: '1px solid rgba(139,92,246,0.12)' }}>
+          <div className="px-5 py-3" style={{ borderBottom: '1px solid var(--border)' }}>
             <p className="section-label">Storico</p>
           </div>
           <div className="overflow-x-auto">
         <table className="w-full text-sm min-w-[360px]">
             <thead>
-              <tr style={{ borderBottom: '1px solid rgba(139,92,246,0.08)' }}>
-                <th className="text-left px-4 md:px-5 py-2.5 text-xs font-medium" style={{ color: '#5e5479' }}>Data</th>
-                <th className="text-right px-4 md:px-5 py-2.5 text-xs font-medium" style={{ color: '#5e5479' }}>Peso</th>
-                <th className="text-right px-4 md:px-5 py-2.5 text-xs font-medium" style={{ color: '#5e5479' }}>% Grasso</th>
-                <th className="text-left px-4 md:px-5 py-2.5 text-xs font-medium" style={{ color: '#5e5479' }}>Nota</th>
+              <tr style={{ borderBottom: '1px solid var(--border)' }}>
+                <th className="text-left px-4 md:px-5 py-2.5 text-xs font-medium" style={{ color: 'var(--text-muted)' }}>Data</th>
+                <th className="text-right px-4 md:px-5 py-2.5 text-xs font-medium" style={{ color: 'var(--text-muted)' }}>Peso</th>
+                <th className="text-right px-4 md:px-5 py-2.5 text-xs font-medium" style={{ color: 'var(--text-muted)' }}>% Grasso</th>
+                <th className="text-left px-4 md:px-5 py-2.5 text-xs font-medium" style={{ color: 'var(--text-muted)' }}>Nota</th>
               </tr>
             </thead>
             <tbody>
               {entries.slice(0, 14).map((e, idx) => (
                 <tr key={e.id}
-                  style={{ borderBottom: idx < Math.min(entries.length, 14) - 1 ? '1px solid rgba(139,92,246,0.06)' : undefined }}
-                  className="hover:bg-violet-500/[0.03] transition-colors">
-                  <td className="px-4 md:px-5 py-3 font-mono text-xs" style={{ color: '#8b7faa' }}>{e.logged_date}</td>
-                  <td className="px-4 md:px-5 py-3 text-right font-mono font-semibold" style={{ color: '#c4b5fd' }}>{e.weight_kg} kg</td>
-                  <td className="px-4 md:px-5 py-3 text-right font-mono text-xs" style={{ color: '#8b7faa' }}>
+                  style={{ borderBottom: idx < Math.min(entries.length, 14) - 1 ? '1px solid var(--divider)' : undefined }}>
+                  <td className="px-4 md:px-5 py-3 font-mono text-xs" style={{ color: 'var(--text-muted)' }}>{e.logged_date}</td>
+                  <td className="px-4 md:px-5 py-3 text-right font-mono font-semibold" style={{ color: 'var(--text)' }}>{e.weight_kg} kg</td>
+                  <td className="px-4 md:px-5 py-3 text-right font-mono text-xs" style={{ color: 'var(--text-muted)' }}>
                     {e.body_fat_pct != null ? `${e.body_fat_pct}%` : '—'}
                   </td>
-                  <td className="px-4 md:px-5 py-3 text-xs" style={{ color: '#5e5479' }}>{e.note ?? ''}</td>
+                  <td className="px-4 md:px-5 py-3 text-xs" style={{ color: 'var(--text-muted)' }}>{e.note ?? ''}</td>
                 </tr>
               ))}
             </tbody>
@@ -162,8 +161,8 @@ export default function LogWeightPage() {
 
       {!loading && entries.length === 0 && (
         <div className="card p-14 text-center">
-          <p className="text-base" style={{ color: '#b8add2' }}>Nessuna misurazione ancora.</p>
-          <p className="text-sm mt-1" style={{ color: '#8b7faa' }}>Inserisci il tuo peso ogni mattina per tracciare i progressi.</p>
+          <p className="text-base" style={{ color: 'var(--text-secondary)' }}>Nessuna misurazione ancora.</p>
+          <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>Inserisci il tuo peso ogni mattina per tracciare i progressi.</p>
         </div>
       )}
     </div>

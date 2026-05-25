@@ -70,10 +70,10 @@ export default async function DashboardPage() {
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="font-display text-xl md:text-2xl font-bold tracking-tight" style={{ color: '#f1eeff' }}>
+          <h1 className="font-display text-xl md:text-2xl font-bold tracking-tight" style={{ color: 'var(--text)' }}>
             Dashboard
           </h1>
-          <p className="text-sm mt-0.5 capitalize" style={{ color: '#6b5f8a' }}>{dateStr}</p>
+          <p className="text-sm mt-0.5 capitalize" style={{ color: 'var(--text-muted)' }}>{dateStr}</p>
         </div>
         <div className="flex flex-col items-end gap-2">
           {phase && <PhaseBadge phase={phase.phase} confidence={phase.confidence ?? 0} />}
@@ -84,9 +84,7 @@ export default async function DashboardPage() {
       {/* Top grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="card p-5">
-          <p className="text-[11px] font-semibold uppercase tracking-widest mb-4" style={{ color: '#4a4268' }}>
-            Recovery · WHOOP
-          </p>
+          <p className="section-label mb-4">Recovery · WHOOP</p>
           <WhoopRings whoop={whoop} />
         </div>
         <AISummaryCard userId={user.id} today={today} />
@@ -95,10 +93,9 @@ export default async function DashboardPage() {
       {/* Nutrition */}
       <div className="card p-5">
         <div className="flex items-center justify-between mb-4">
-          <p className="text-[11px] font-semibold uppercase tracking-widest" style={{ color: '#4a4268' }}>
-            Nutrizione Oggi
-          </p>
-          <Link href="/log/meals" className="text-[11px]" style={{ color: '#7c3aed' }}>
+          <p className="section-label">Nutrizione Oggi</p>
+          <Link href="/log/meals" className="text-[11px] font-semibold transition-colors"
+            style={{ color: 'var(--accent)' }}>
             + Aggiungi →
           </Link>
         </div>
@@ -114,67 +111,60 @@ export default async function DashboardPage() {
       </div>
 
       {/* Caloric Balance */}
-      {caloricBalance !== null && (
-        <div className="card p-5">
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-[11px] font-semibold uppercase tracking-widest" style={{ color: '#4a4268' }}>
-              Bilancio Calorico Oggi
-            </p>
-            <span className="font-mono text-sm font-bold" style={{
-              color: caloricBalance < -100 ? '#a78bfa' : caloricBalance > 100 ? '#fb923c' : '#22d3ee',
-            }}>
-              {caloricBalance > 0 ? '+' : ''}{caloricBalance} kcal
-            </span>
-          </div>
+      {caloricBalance !== null && (() => {
+        const balanceColor = caloricBalance < -100 ? 'var(--info)'
+          : caloricBalance > 100 ? 'var(--warning)'
+          : 'var(--success)'
+        return (
+          <div className="card p-5">
+            <div className="flex items-center justify-between mb-3">
+              <p className="section-label">Bilancio Calorico Oggi</p>
+              <span className="font-mono text-sm font-bold" style={{ color: balanceColor }}>
+                {caloricBalance > 0 ? '+' : ''}{caloricBalance} kcal
+              </span>
+            </div>
 
-          <div className="flex items-end gap-3 mb-3">
-            <div>
-              <p className="font-mono text-2xl font-bold" style={{ color: '#ede9fe' }}>{Math.round(macros.kcal)}</p>
-              <p className="text-[10px] mt-0.5 uppercase tracking-wide" style={{ color: '#5e5479' }}>consumate</p>
+            <div className="flex items-end gap-3 mb-3">
+              <div>
+                <p className="font-mono text-2xl font-bold" style={{ color: 'var(--text)' }}>{Math.round(macros.kcal)}</p>
+                <p className="text-[10px] mt-0.5 uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>consumate</p>
+              </div>
+              <div className="flex-1 flex items-center justify-center pb-2">
+                <span className="text-xs" style={{ color: 'var(--text-muted)' }}>/ {tdee} target</span>
+              </div>
+              <div className="text-right">
+                <p className="font-mono text-base font-semibold" style={{ color: balanceColor }}>
+                  {caloricBalance < 0 ? 'Deficit' : caloricBalance > 0 ? 'Surplus' : 'Pari'}
+                </p>
+                <p className="text-[10px] uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
+                  {Math.abs(caloricBalance)} kcal
+                </p>
+              </div>
             </div>
-            <div className="flex-1 flex items-center justify-center pb-2">
-              <span className="text-xs" style={{ color: '#4a4268' }}>/ {tdee} target</span>
-            </div>
-            <div className="text-right">
-              <p className="font-mono text-base font-semibold" style={{
-                color: caloricBalance < -100 ? '#a78bfa' : caloricBalance > 100 ? '#fb923c' : '#22d3ee',
-              }}>
-                {caloricBalance < 0 ? 'Deficit' : caloricBalance > 0 ? 'Surplus' : 'Pari'}
-              </p>
-              <p className="text-[10px] uppercase tracking-wide" style={{ color: '#5e5479' }}>
-                {Math.abs(caloricBalance)} kcal
-              </p>
-            </div>
-          </div>
 
-          {/* Progress bar */}
-          <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(139,92,246,0.12)' }}>
-            <div
-              className="h-full rounded-full transition-all duration-700"
-              style={{
-                width: `${Math.min(balancePct, 100)}%`,
-                background: balancePct > 110
-                  ? 'linear-gradient(90deg, #8b5cf6, #fb923c)'
-                  : balancePct > 90
-                    ? 'linear-gradient(90deg, #6d28d9, #8b5cf6)'
-                    : 'linear-gradient(90deg, #4f46e5, #7c3aed)',
-              }}
-            />
+            {/* Progress bar */}
+            <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.04)' }}>
+              <div
+                className="h-full rounded-full transition-all duration-700"
+                style={{
+                  width: `${Math.min(balancePct, 100)}%`,
+                  background: balanceColor,
+                }}
+              />
+            </div>
+            <div className="flex justify-between mt-1">
+              <span className="text-[9px]" style={{ color: 'var(--text-dim)' }}>0 kcal</span>
+              <span className="text-[9px]" style={{ color: 'var(--text-dim)' }}>{balancePct}% del target</span>
+              <span className="text-[9px]" style={{ color: 'var(--text-dim)' }}>{tdee} kcal</span>
+            </div>
           </div>
-          <div className="flex justify-between mt-1">
-            <span className="text-[9px]" style={{ color: '#4a4268' }}>0 kcal</span>
-            <span className="text-[9px]" style={{ color: '#4a4268' }}>{balancePct}% del target</span>
-            <span className="text-[9px]" style={{ color: '#4a4268' }}>{tdee} kcal</span>
-          </div>
-        </div>
-      )}
+        )
+      })()}
 
       {/* Weight sparkline */}
       {weights.length > 0 && (
         <div className="card p-5">
-          <p className="text-[11px] font-semibold uppercase tracking-widest mb-4" style={{ color: '#4a4268' }}>
-            Peso — 14 giorni
-          </p>
+          <p className="section-label mb-4">Peso — 14 giorni</p>
           <WeightSparkline data={weights} />
         </div>
       )}
@@ -184,8 +174,8 @@ export default async function DashboardPage() {
         {QUICK_ACTIONS.map((a) => (
           <Link key={a.href} href={a.href} className="group card p-3 md:p-4 text-center block transition-all">
             <div className="text-xl md:text-2xl mb-1 md:mb-1.5">{a.icon}</div>
-            <p className="text-xs md:text-sm font-semibold" style={{ color: '#d8b4fe' }}>{a.label}</p>
-            <p className="hidden sm:block text-[11px] mt-0.5" style={{ color: '#4a4268' }}>{a.desc}</p>
+            <p className="text-xs md:text-sm font-semibold" style={{ color: 'var(--text)' }}>{a.label}</p>
+            <p className="hidden sm:block text-[11px] mt-0.5" style={{ color: 'var(--text-muted)' }}>{a.desc}</p>
           </Link>
         ))}
       </div>

@@ -17,10 +17,10 @@ interface Profile {
 }
 
 const PHASES = [
-  { value: 'cut',         label: 'Cut',         desc: 'Deficit calorico — perdita di grasso', color: '#60a5fa', bg: 'rgba(96,165,250,0.08)', border: 'rgba(96,165,250,0.25)' },
-  { value: 'bulk',        label: 'Bulk',        desc: 'Surplus aggressivo — massa muscolare', color: '#34d399', bg: 'rgba(52,211,153,0.08)', border: 'rgba(52,211,153,0.25)' },
-  { value: 'lean_bulk',   label: 'Lean Bulk',   desc: 'Surplus controllato — recomposizione', color: '#a78bfa', bg: 'rgba(167,139,250,0.08)', border: 'rgba(167,139,250,0.25)' },
-  { value: 'maintenance', label: 'Maintenance', desc: 'Equilibrio calorico — mantenimento',   color: '#fbbf24', bg: 'rgba(251,191,36,0.08)',  border: 'rgba(251,191,36,0.25)' },
+  { value: 'cut',         label: 'Cut',         desc: 'Deficit calorico — perdita di grasso', color: 'var(--phase-cut)',         bg: 'rgba(96,165,250,0.08)',  border: 'rgba(96,165,250,0.30)' },
+  { value: 'bulk',        label: 'Bulk',        desc: 'Surplus aggressivo — massa muscolare', color: 'var(--phase-bulk)',        bg: 'rgba(34,197,94,0.08)',   border: 'rgba(34,197,94,0.30)' },
+  { value: 'lean_bulk',   label: 'Lean Bulk',   desc: 'Surplus controllato — recomposizione', color: 'var(--phase-lean-bulk)',   bg: 'rgba(45,212,191,0.08)',  border: 'rgba(45,212,191,0.30)' },
+  { value: 'maintenance', label: 'Maintenance', desc: 'Equilibrio calorico — mantenimento',   color: 'var(--phase-maintenance)', bg: 'rgba(245,158,11,0.08)',  border: 'rgba(245,158,11,0.30)' },
 ]
 
 const SEX_OPTIONS = [
@@ -74,7 +74,7 @@ export default function ProfilePage() {
   if (loading) {
     return (
       <div className="p-6 flex items-center justify-center h-48">
-        <p className="text-sm" style={{ color: '#8b7faa' }}>Caricamento...</p>
+        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Caricamento...</p>
       </div>
     )
   }
@@ -82,8 +82,8 @@ export default function ProfilePage() {
   return (
     <div className="p-4 md:p-6 max-w-2xl mx-auto space-y-4 md:space-y-5">
       <div>
-        <h1 className="font-display text-xl md:text-2xl font-bold tracking-tight" style={{ color: '#ede9fe' }}>Profilo</h1>
-        <p className="text-sm mt-0.5" style={{ color: '#8b7faa' }}>Dati biometrici e obiettivi di allenamento</p>
+        <h1 className="font-display text-xl md:text-2xl font-bold tracking-tight" style={{ color: 'var(--text)' }}>Profilo</h1>
+        <p className="text-sm mt-0.5" style={{ color: 'var(--text-muted)' }}>Dati biometrici e obiettivi di allenamento</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -92,7 +92,7 @@ export default function ProfilePage() {
           <p className="section-label">Biometria</p>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs mb-1.5" style={{ color: '#8b7faa' }}>Altezza (cm)</label>
+              <label className="block text-xs mb-1.5" style={{ color: 'var(--text-muted)' }}>Altezza (cm)</label>
               <input
                 type="number"
                 value={profile.height_cm ?? ''}
@@ -102,7 +102,7 @@ export default function ProfilePage() {
               />
             </div>
             <div>
-              <label className="block text-xs mb-1.5" style={{ color: '#8b7faa' }}>Data di nascita</label>
+              <label className="block text-xs mb-1.5" style={{ color: 'var(--text-muted)' }}>Data di nascita</label>
               <input
                 type="date"
                 value={profile.birth_date ?? ''}
@@ -112,7 +112,7 @@ export default function ProfilePage() {
             </div>
           </div>
           <div>
-            <label className="block text-xs mb-2" style={{ color: '#8b7faa' }}>Sesso biologico</label>
+            <label className="block text-xs mb-2" style={{ color: 'var(--text-muted)' }}>Sesso biologico</label>
             <div className="flex gap-2">
               {SEX_OPTIONS.map((opt) => (
                 <button
@@ -121,8 +121,8 @@ export default function ProfilePage() {
                   onClick={() => set('sex', opt.value as Profile['sex'])}
                   className="flex-1 py-2 rounded-lg text-sm font-medium transition-all"
                   style={profile.sex === opt.value
-                    ? { background: 'rgba(139,92,246,0.2)', border: '1px solid rgba(139,92,246,0.5)', color: '#c4b5fd' }
-                    : { background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(139,92,246,0.12)', color: '#8b7faa' }
+                    ? { background: 'var(--accent-bg)', border: '1px solid var(--accent-border)', color: 'var(--accent)' }
+                    : { background: 'var(--surface-soft)', border: '1px solid var(--border)', color: 'var(--text-muted)' }
                   }
                 >
                   {opt.label}
@@ -137,7 +137,7 @@ export default function ProfilePage() {
           <p className="section-label">Obiettivi Giornalieri</p>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs mb-1.5" style={{ color: '#8b7faa' }}>TDEE (kcal/giorno)</label>
+              <label className="block text-xs mb-1.5" style={{ color: 'var(--text-muted)' }}>TDEE (kcal/giorno)</label>
               <input
                 type="number"
                 value={profile.tdee_kcal ?? ''}
@@ -147,7 +147,7 @@ export default function ProfilePage() {
               />
             </div>
             <div>
-              <label className="block text-xs mb-1.5" style={{ color: '#8b7faa' }}>Proteine target (g)</label>
+              <label className="block text-xs mb-1.5" style={{ color: 'var(--text-muted)' }}>Proteine target (g)</label>
               <input
                 type="number"
                 value={profile.protein_g ?? ''}
@@ -157,7 +157,7 @@ export default function ProfilePage() {
               />
             </div>
             <div>
-              <label className="block text-xs mb-1.5" style={{ color: '#8b7faa' }}>Carboidrati target (g)</label>
+              <label className="block text-xs mb-1.5" style={{ color: 'var(--text-muted)' }}>Carboidrati target (g)</label>
               <input
                 type="number"
                 value={profile.carbs_g ?? ''}
@@ -167,7 +167,7 @@ export default function ProfilePage() {
               />
             </div>
             <div>
-              <label className="block text-xs mb-1.5" style={{ color: '#8b7faa' }}>Grassi target (g)</label>
+              <label className="block text-xs mb-1.5" style={{ color: 'var(--text-muted)' }}>Grassi target (g)</label>
               <input
                 type="number"
                 value={profile.fat_g ?? ''}
@@ -187,14 +187,14 @@ export default function ProfilePage() {
             return (
               <div className="space-y-1.5 pt-1">
                 <div className="flex gap-1 h-2 rounded-full overflow-hidden">
-                  <div style={{ width: `${(p / total) * 100}%`, background: '#60a5fa' }} />
-                  <div style={{ width: `${(c / total) * 100}%`, background: '#fbbf24' }} />
-                  <div style={{ width: `${(f / total) * 100}%`, background: '#f472b6' }} />
+                  <div style={{ width: `${(p / total) * 100}%`, background: 'var(--macro-protein)' }} />
+                  <div style={{ width: `${(c / total) * 100}%`, background: 'var(--macro-carbs)' }} />
+                  <div style={{ width: `${(f / total) * 100}%`, background: 'var(--macro-fat)' }} />
                 </div>
                 <div className="flex gap-4">
-                  <span className="text-xs font-mono" style={{ color: '#60a5fa' }}>P {Math.round((p / total) * 100)}%</span>
-                  <span className="text-xs font-mono" style={{ color: '#fbbf24' }}>C {Math.round((c / total) * 100)}%</span>
-                  <span className="text-xs font-mono" style={{ color: '#f472b6' }}>F {Math.round((f / total) * 100)}%</span>
+                  <span className="text-xs font-mono" style={{ color: 'var(--macro-protein)' }}>P {Math.round((p / total) * 100)}%</span>
+                  <span className="text-xs font-mono" style={{ color: 'var(--macro-carbs)' }}>C {Math.round((c / total) * 100)}%</span>
+                  <span className="text-xs font-mono" style={{ color: 'var(--macro-fat)' }}>F {Math.round((f / total) * 100)}%</span>
                 </div>
               </div>
             )
@@ -210,18 +210,18 @@ export default function ProfilePage() {
                 key={p.value}
                 type="button"
                 onClick={() => set('goal_phase', p.value as Profile['goal_phase'])}
-                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all"
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all"
                 style={profile.goal_phase === p.value
                   ? { background: p.bg, border: `1px solid ${p.border}` }
-                  : { background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(139,92,246,0.1)' }
+                  : { background: 'var(--surface-soft)', border: '1px solid var(--border)' }
                 }
               >
-                <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: profile.goal_phase === p.value ? p.color : '#3d3459' }} />
+                <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: profile.goal_phase === p.value ? p.color : 'var(--text-dim)' }} />
                 <div>
-                  <span className="text-sm font-semibold" style={{ color: profile.goal_phase === p.value ? p.color : '#b8add2' }}>
+                  <span className="text-sm font-semibold" style={{ color: profile.goal_phase === p.value ? p.color : 'var(--text-secondary)' }}>
                     {p.label}
                   </span>
-                  <span className="text-xs ml-2" style={{ color: '#8b7faa' }}>{p.desc}</span>
+                  <span className="text-xs ml-2" style={{ color: 'var(--text-muted)' }}>{p.desc}</span>
                 </div>
               </button>
             ))}
@@ -231,10 +231,10 @@ export default function ProfilePage() {
         {/* Routine */}
         <div className="card p-5 space-y-4">
           <p className="section-label">Routine Giornaliera</p>
-          <p className="text-xs" style={{ color: '#6b5f8a' }}>Usata dall&apos;AI per contestualizzare i consigli</p>
+          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Usata dall&apos;AI per contestualizzare i consigli</p>
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="block text-xs mb-1.5" style={{ color: '#8b7faa' }}>Sveglia tipica</label>
+              <label className="block text-xs mb-1.5" style={{ color: 'var(--text-muted)' }}>Sveglia tipica</label>
               <input
                 type="time"
                 value={profile.wake_time ?? ''}
@@ -243,7 +243,7 @@ export default function ProfilePage() {
               />
             </div>
             <div>
-              <label className="block text-xs mb-1.5" style={{ color: '#8b7faa' }}>Inizio allenamento</label>
+              <label className="block text-xs mb-1.5" style={{ color: 'var(--text-muted)' }}>Inizio allenamento</label>
               <input
                 type="time"
                 value={profile.workout_start ?? ''}
@@ -252,7 +252,7 @@ export default function ProfilePage() {
               />
             </div>
             <div>
-              <label className="block text-xs mb-1.5" style={{ color: '#8b7faa' }}>Fine allenamento</label>
+              <label className="block text-xs mb-1.5" style={{ color: 'var(--text-muted)' }}>Fine allenamento</label>
               <input
                 type="time"
                 value={profile.workout_end ?? ''}
@@ -263,15 +263,15 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {error && <p className="text-sm" style={{ color: '#f87171' }}>{error}</p>}
+        {error && <p className="text-sm" style={{ color: 'var(--danger)' }}>{error}</p>}
 
         <div className="flex items-center gap-3">
           <button type="submit" disabled={saving} className="btn-primary">
             {saving ? 'Salvataggio...' : 'Salva profilo'}
           </button>
           {saved && (
-            <span className="text-sm font-medium" style={{ color: '#a78bfa' }}>
-              Salvato
+            <span className="text-sm font-medium" style={{ color: 'var(--success)' }}>
+              ✓ Salvato
             </span>
           )}
         </div>

@@ -102,10 +102,10 @@ export default function WeeklyReportPage() {
     <div className="p-4 md:p-6 max-w-3xl mx-auto space-y-4 md:space-y-5">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="font-display text-2xl font-bold tracking-tight" style={{ color: '#ede9fe' }}>
+          <h1 className="font-display text-2xl font-bold tracking-tight" style={{ color: 'var(--text)' }}>
             Report Settimanale
           </h1>
-          <p className="text-sm mt-0.5" style={{ color: '#8b7faa' }}>
+          <p className="text-sm mt-0.5" style={{ color: 'var(--text-muted)' }}>
             {isCurrentWeek ? 'Settimana corrente' : 'Settimana passata'}
           </p>
         </div>
@@ -118,25 +118,20 @@ export default function WeeklyReportPage() {
       <div className="card p-3 flex items-center justify-between gap-2">
         <button
           onClick={goPrev}
-          className="px-3 py-1.5 rounded-xl text-sm font-semibold transition-colors"
-          style={{
-            background: 'rgba(124,58,237,0.08)',
-            border: '1px solid rgba(109,40,217,0.2)',
-            color: '#c4b5fd',
-          }}
+          className="btn-ghost px-3 py-1.5 text-sm"
           aria-label="Settimana precedente"
         >
           ← Precedente
         </button>
         <div className="flex flex-col items-center">
-          <p className="text-sm font-semibold" style={{ color: '#ede9fe' }}>
+          <p className="text-sm font-semibold" style={{ color: 'var(--text)' }}>
             {weekLabel(currentMonday)}
           </p>
           {!isCurrentWeek && (
             <button
               onClick={goToday}
-              className="text-[10px] mt-0.5 underline-offset-2 hover:underline"
-              style={{ color: '#8b7faa' }}
+              className="text-[10px] mt-0.5 underline-offset-2 hover:underline transition-colors"
+              style={{ color: 'var(--accent)' }}
             >
               Vai a questa settimana
             </button>
@@ -145,14 +140,8 @@ export default function WeeklyReportPage() {
         <button
           onClick={goNext}
           disabled={isCurrentWeek}
-          className="px-3 py-1.5 rounded-xl text-sm font-semibold transition-colors"
-          style={{
-            background: 'rgba(124,58,237,0.08)',
-            border: '1px solid rgba(109,40,217,0.2)',
-            color: isCurrentWeek ? '#4a4268' : '#c4b5fd',
-            opacity: isCurrentWeek ? 0.5 : 1,
-            cursor: isCurrentWeek ? 'not-allowed' : 'pointer',
-          }}
+          className="btn-ghost px-3 py-1.5 text-sm"
+          style={isCurrentWeek ? { opacity: 0.4, cursor: 'not-allowed' } : undefined}
           aria-label="Settimana successiva"
         >
           Successiva →
@@ -161,19 +150,19 @@ export default function WeeklyReportPage() {
 
       {loading && (
         <div className="card p-14 text-center">
-          <p className="text-sm" style={{ color: '#8b7faa' }}>Caricamento...</p>
+          <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Caricamento...</p>
         </div>
       )}
 
       {!loading && !summary && !generating && (
         <div className="card p-14 text-center space-y-3">
-          <p className="text-base" style={{ color: '#b8add2' }}>
+          <p className="text-base" style={{ color: 'var(--text-secondary)' }}>
             Nessun report per questa settimana.
           </p>
-          <p className="text-sm" style={{ color: '#8b7faa' }}>
+          <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
             {isFutureWeek
               ? 'Settimana futura — non disponibile.'
-              : 'Clicca “Genera Report” per un’analisi approfondita con Claude Opus.'}
+              : 'Clicca "Genera Report" per un’analisi approfondita con Claude Opus.'}
           </p>
         </div>
       )}
@@ -185,35 +174,35 @@ export default function WeeklyReportPage() {
               <div
                 key={i}
                 className="w-2 h-2 rounded-full animate-bounce"
-                style={{ background: '#8b5cf6', animationDelay: `${i * 0.15}s` }}
+                style={{ background: 'var(--accent)', animationDelay: `${i * 0.15}s` }}
               />
             ))}
           </div>
-          <p className="text-sm" style={{ color: '#b8add2' }}>
+          <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
             Generazione analisi settimanale con Claude Opus...
           </p>
-          <p className="text-xs" style={{ color: '#8b7faa' }}>Potrebbe richiedere 15–30 secondi</p>
+          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Potrebbe richiedere 15–30 secondi</p>
         </div>
       )}
 
-      {error && <p className="text-sm" style={{ color: '#f87171' }}>{error}</p>}
+      {error && <p className="text-sm" style={{ color: 'var(--danger)' }}>{error}</p>}
 
       {summary && !generating && (
-        <div className="card p-6">
+        <div className="card p-6 animate-fade-in">
           <pre
             className="text-sm leading-relaxed whitespace-pre-wrap font-sans"
-            style={{ color: '#b8add2' }}
+            style={{ color: 'var(--text-secondary)' }}
           >
             {summary.content}
           </pre>
           <div
             className="mt-6 pt-4 flex items-center justify-between"
-            style={{ borderTop: '1px solid rgba(139,92,246,0.15)' }}
+            style={{ borderTop: '1px solid var(--border)' }}
           >
-            <span className="font-mono text-xs" style={{ color: '#5e5479' }}>
+            <span className="font-mono text-xs" style={{ color: 'var(--text-dim)' }}>
               {summary.model_used}
             </span>
-            <span className="text-xs" style={{ color: '#5e5479' }}>
+            <span className="text-xs" style={{ color: 'var(--text-dim)' }}>
               {new Date(summary.created_at).toLocaleDateString('it-IT', {
                 day: 'numeric',
                 month: 'short',
