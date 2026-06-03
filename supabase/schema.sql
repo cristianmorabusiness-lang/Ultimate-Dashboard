@@ -18,6 +18,9 @@ create table if not exists user_profile (
   protein_g     integer,
   carbs_g       integer,
   fat_g         integer,
+  wake_time     time,
+  workout_start time,
+  workout_end   time,
   created_at    timestamptz default now(),
   updated_at    timestamptz default now(),
   unique (user_id)

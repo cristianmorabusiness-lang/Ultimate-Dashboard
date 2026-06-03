@@ -94,6 +94,13 @@ export async function POST(request: Request) {
       .eq('user_id', user.id).gte('cycle_date', ago14).order('cycle_date', { ascending: false }),
   ])
 
+  // Surface query errors instead of silently turning them into empty context.
+  // A missing column (PostgREST 42703) would otherwise make the coach "blind" to
+  // real data with no trace — see supabase/migrations/0001_add_missing_columns.sql.
+  for (const [label, res] of Object.entries({ profileRes, phaseRes, weightRes, workoutRes, mealRes, whoopRes })) {
+    if (res.error) console.error(`[ai/chat] ${label} query failed:`, res.error.message)
+  }
+
   const profile = profileRes.data as ProfileLite | null
   const phases = (phaseRes.data ?? []) as PhaseLite[]
   const weights = (weightRes.data ?? []) as WeightLite[]
