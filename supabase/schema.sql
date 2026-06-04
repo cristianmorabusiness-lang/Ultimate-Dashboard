@@ -192,6 +192,45 @@ alter table ai_summaries enable row level security;
 create policy "owner_only" on ai_summaries for all using (auth.uid() = user_id);
 
 -- ============================================================
+-- TASK DEFINITIONS (recurring checklist items)
+-- ============================================================
+create table if not exists task_defs (
+  id          uuid primary key default uuid_generate_v4(),
+  user_id     uuid not null references auth.users(id) on delete cascade,
+  title       text not null,
+  sort_order  integer not null default 0,
+  active      boolean not null default true,
+  created_at  timestamptz default now()
+);
+
+create index if not exists idx_task_defs_user on task_defs (user_id, active, sort_order);
+alter table task_defs enable row level security;
+create policy "owner_only" on task_defs for all using (auth.uid() = user_id);
+
+-- ============================================================
+-- TASK LOG (per-day completion records + one-off tasks)
+-- ============================================================
+create table if not exists task_log (
+  id          uuid primary key default uuid_generate_v4(),
+  user_id     uuid not null references auth.users(id) on delete cascade,
+  def_id      uuid references task_defs(id) on delete cascade,
+  logged_date date not null,
+  title       text not null,
+  done        boolean not null default false,
+  skipped     boolean not null default false,
+  done_at     timestamptz,
+  sort_order  integer not null default 0,
+  created_at  timestamptz default now()
+);
+
+create index if not exists idx_task_log_user_date on task_log (user_id, logged_date desc);
+create unique index if not exists uq_task_log_def_date
+  on task_log (user_id, def_id, logged_date)
+  where def_id is not null;
+alter table task_log enable row level security;
+create policy "owner_only" on task_log for all using (auth.uid() = user_id);
+
+-- ============================================================
 -- Verify setup
 -- ============================================================
 -- Run this to confirm: select tablename from pg_tables where schemaname = 'public' order by tablename;

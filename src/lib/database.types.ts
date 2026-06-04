@@ -157,7 +157,14 @@ export type Database = {
           fiber_g?: number | null
           created_at?: string
         }
-        Update: Record<string, never>
+        Update: {
+          quantity_g?: number
+          kcal?: number
+          protein_g?: number
+          carbs_g?: number
+          fat_g?: number
+          fiber_g?: number | null
+        }
         Relationships: []
       }
       workouts: {
@@ -264,6 +271,64 @@ export type Database = {
         }
         Relationships: []
       }
+      task_defs: {
+        Row: {
+          id: string
+          user_id: string
+          title: string
+          sort_order: number
+          active: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          title: string
+          sort_order?: number
+          active?: boolean
+          created_at?: string
+        }
+        Update: {
+          title?: string
+          sort_order?: number
+          active?: boolean
+        }
+        Relationships: []
+      }
+      task_log: {
+        Row: {
+          id: string
+          user_id: string
+          def_id: string | null
+          logged_date: string
+          title: string
+          done: boolean
+          skipped: boolean
+          done_at: string | null
+          sort_order: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          def_id?: string | null
+          logged_date: string
+          title: string
+          done?: boolean
+          skipped?: boolean
+          done_at?: string | null
+          sort_order?: number
+          created_at?: string
+        }
+        Update: {
+          title?: string
+          done?: boolean
+          skipped?: boolean
+          done_at?: string | null
+          sort_order?: number
+        }
+        Relationships: []
+      }
       ai_summaries: {
         Row: {
           id: string
@@ -307,4 +372,6 @@ export type Workout = Database['public']['Tables']['workouts']['Row']
 export type WorkoutSet = Database['public']['Tables']['workout_sets']['Row']
 export type WhoopDaily = Database['public']['Tables']['whoop_daily']['Row']
 export type AiSummary = Database['public']['Tables']['ai_summaries']['Row']
+export type TaskDef = Database['public']['Tables']['task_defs']['Row']
+export type TaskLog = Database['public']['Tables']['task_log']['Row']
 export type Phase = 'cut' | 'bulk' | 'lean_bulk' | 'maintenance'

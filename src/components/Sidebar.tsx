@@ -20,6 +20,7 @@ const NAV = [
     group: 'Log',
     items: [
       { href: '/log/meals',            label: 'Pasti',           exact: false, icon: IconFork },
+      { href: '/log/tasks',            label: 'Attività',        exact: false, icon: IconCheck },
       { href: '/log/workouts',         label: 'Workout',         exact: false, icon: IconDumbbell },
       { href: '/log/workouts/history', label: 'Storico Workout', exact: false, icon: IconHistory },
       { href: '/log/weight',           label: 'Peso',            exact: false, icon: IconScale },
@@ -357,6 +358,16 @@ function IconBrain({ active, size = 14 }: { active: boolean; size?: number }) {
       <path d="M9 4.5c.6-.18 1.25.1 1.5.7.25.6-.05 1.28-.65 1.5" stroke={c} strokeWidth="1.1" strokeLinecap="round" />
       <path d="M5 3C4.4 2.82 3.75 3.1 3.5 3.7 3.25 4.3 3.55 5 4.15 5.2" stroke={c} strokeWidth="1.1" strokeLinecap="round" />
       <path d="M5.5 10v3M8.5 10v3" stroke={c} strokeWidth="1.1" strokeLinecap="round" opacity="0.6" />
+    </svg>
+  )
+}
+
+function IconCheck({ active, size = 14 }: { active: boolean; size?: number }) {
+  const c = iconColor(active)
+  return (
+    <svg width={size} height={size} viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
+      <rect x="1" y="1.5" width="12" height="11" rx="2.5" stroke={c} strokeWidth="1.2" />
+      <path d="M4 7l2 2 4-4.5" stroke={c} strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   )
 }

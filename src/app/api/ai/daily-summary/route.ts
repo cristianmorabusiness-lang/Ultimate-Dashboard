@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@/lib/supabase/server'
 import { PHASE_LABELS } from '@/lib/phase-detection'
-import type { Phase, WhoopDaily, UserProfile, PhaseHistory, MealItem } from '@/lib/database.types'
+import type { Phase, WhoopDaily, UserProfile, PhaseHistory, MealItem, TaskDef, TaskLog } from '@/lib/database.types'
+import { mergeDayTasks, taskCounts } from '@/lib/tasks'
 import { localDate } from '@/lib/date'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
@@ -21,7 +22,8 @@ Respond ONLY with a valid JSON object in this exact structure — no markdown, n
 }
 
 tone must be exactly one of: encouraging, neutral, cautionary.
-Each field must be under 40 words. Reference actual numbers. Never give generic advice.`
+Each field must be under 40 words. Reference actual numbers. Never give generic advice.
+If the user has daily tasks still incomplete, you may make priority_action about completing the most important one (e.g. a workout/"Gym" task).`
 
 export async function GET() {
   const supabase = await createClient()
@@ -53,11 +55,15 @@ export async function GET() {
   const profileRes = await supabase.from('user_profile').select('*').eq('user_id', user.id).maybeSingle()
   const phaseRes = await supabase.from('phase_history').select('*').eq('user_id', user.id).order('detected_at', { ascending: false }).limit(1).maybeSingle()
   const mealsRes = await supabase.from('meals').select('id').eq('user_id', user.id).eq('logged_date', today)
+  const taskDefsRes = await supabase.from('task_defs').select('*').eq('user_id', user.id).eq('active', true).order('sort_order', { ascending: true })
+  const taskLogRes = await supabase.from('task_log').select('*').eq('user_id', user.id).eq('logged_date', today)
 
   const whoop = whoopRes.data as WhoopDaily | null
   const profile = profileRes.data as UserProfile | null
   const phase = phaseRes.data as PhaseHistory | null
   const mealsData = (mealsRes.data ?? []) as { id: string }[]
+  const dayTasks = mergeDayTasks((taskDefsRes.data ?? []) as TaskDef[], (taskLogRes.data ?? []) as TaskLog[], today)
+  const { done: tasksDone, active: tasksActive } = taskCounts(dayTasks)
 
   let macros = { kcal: 0, protein_g: 0, carbs_g: 0, fat_g: 0 }
   if (mealsData.length > 0) {
@@ -125,6 +131,9 @@ Nutrition logged today:
 - Protein: ${Math.round(macros.protein_g)}g (target: ${profile?.protein_g ?? 'not set'}g)
 - Carbs: ${Math.round(macros.carbs_g)}g (target: ${profile?.carbs_g ?? 'not set'}g)
 - Fat: ${Math.round(macros.fat_g)}g (target: ${profile?.fat_g ?? 'not set'}g)
+
+Daily tasks (${tasksDone}/${tasksActive} done${tasksActive === 0 && dayTasks.length > 0 ? ', rest day' : ''}):
+${dayTasks.length === 0 ? '- none defined' : dayTasks.map((t) => `- [${t.skipped ? 'rest' : t.done ? 'x' : ' '}] ${t.title}`).join('\n')}
 
 Generate the coaching summary JSON now.`
 

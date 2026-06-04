@@ -189,6 +189,10 @@ export default function LogMealsPage() {
   const [showScanner, setShowScanner] = useState(false)
   const [barcodeLoading, setBarcodeLoading] = useState(false)
   const [barcodeError, setBarcodeError] = useState('')
+  const [editingItem, setEditingItem] = useState<string | null>(null)
+  const [editQty, setEditQty] = useState('')
+  const [busyItem, setBusyItem] = useState<string | null>(null)
+  const [deletingMeal, setDeletingMeal] = useState<string | null>(null)
 
   const isToday = currentDate === todayStr
   const isFuture = currentDate > todayStr
@@ -277,6 +281,43 @@ export default function LogMealsPage() {
     })
     setSelected(null); setQuery(''); setResults([]); setQuantity('100'); setBarcodeError('')
     await loadMeals(); setAdding(false)
+  }
+
+  function startEdit(item: MealItem) {
+    setEditingItem(item.id)
+    setEditQty(String(item.quantity_g))
+  }
+
+  async function saveEdit(item: MealItem) {
+    const newQ = parseFloat(editQty)
+    if (!Number.isFinite(newQ) || newQ <= 0) return
+    setBusyItem(item.id)
+    // Scale macros from the stored absolute values for the current quantity.
+    const factor = newQ / item.quantity_g
+    await fetch(`/api/meals/items/${item.id}`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        quantity_g: newQ,
+        kcal: Math.round(item.kcal * factor),
+        protein_g: Math.round(item.protein_g * factor * 10) / 10,
+        carbs_g: Math.round(item.carbs_g * factor * 10) / 10,
+        fat_g: Math.round(item.fat_g * factor * 10) / 10,
+      }),
+    })
+    setEditingItem(null); setEditQty('')
+    await loadMeals(); setBusyItem(null)
+  }
+
+  async function deleteItem(item: MealItem) {
+    setBusyItem(item.id)
+    await fetch(`/api/meals/items/${item.id}`, { method: 'DELETE' })
+    await loadMeals(); setBusyItem(null)
+  }
+
+  async function deleteMeal(mealId: string) {
+    setDeletingMeal(mealId)
+    await fetch(`/api/meals/${mealId}`, { method: 'DELETE' })
+    await loadMeals(); setDeletingMeal(null)
   }
 
   const totals = meals.flatMap((m) => m.items).reduce(
@@ -566,27 +607,76 @@ export default function LogMealsPage() {
                 <span className="text-base">{mealDef?.icon ?? '🍽'}</span>
                 <span className="text-sm font-semibold" style={{ color: 'var(--text)' }}>{meal.meal_name}</span>
               </div>
-              {meal.items.length > 0 && (
-                <span className="font-mono text-[11px]" style={{ color: 'var(--text-muted)' }}>
-                  {Math.round(mealTotals.kcal)} kcal · P {Math.round(mealTotals.protein_g)}g
-                </span>
-              )}
+              <div className="flex items-center gap-2.5">
+                {meal.items.length > 0 && (
+                  <span className="font-mono text-[11px]" style={{ color: 'var(--text-muted)' }}>
+                    {Math.round(mealTotals.kcal)} kcal · P {Math.round(mealTotals.protein_g)}g
+                  </span>
+                )}
+                <button onClick={() => deleteMeal(meal.id)} disabled={deletingMeal === meal.id}
+                  title="Elimina pasto"
+                  className="w-6 h-6 flex items-center justify-center rounded-md text-[11px] transition-colors shrink-0"
+                  style={{ background: 'var(--surface-soft)', color: 'var(--text-muted)' }}
+                  onMouseEnter={(e) => { const el = e.currentTarget as HTMLElement; el.style.color = 'var(--danger)'; el.style.background = 'var(--danger-bg)' }}
+                  onMouseLeave={(e) => { const el = e.currentTarget as HTMLElement; el.style.color = 'var(--text-muted)'; el.style.background = 'var(--surface-soft)' }}>
+                  {deletingMeal === meal.id ? '…' : '🗑'}
+                </button>
+              </div>
             </div>
             {meal.items.length === 0
               ? <p className="p-4 text-xs" style={{ color: 'var(--text-muted)' }}>Nessun alimento</p>
               : (
                 <div className="divide-y" style={{ borderColor: 'var(--divider)' }}>
                   {meal.items.map((item) => (
-                    <div key={item.id} className="px-4 py-2.5 flex items-center justify-between">
-                      <div className="min-w-0 mr-3">
+                    <div key={item.id} className="px-4 py-2.5 flex items-center justify-between gap-2">
+                      <div className="min-w-0 mr-1 flex-1">
                         <p className="text-sm truncate" style={{ color: 'var(--text)' }}>{item.food_name}</p>
-                        <p className="text-[11px] font-mono mt-0.5" style={{ color: 'var(--text-muted)' }}>
-                          {item.quantity_g}g · P {item.protein_g}g · C {item.carbs_g}g · G {item.fat_g}g
-                        </p>
+                        {editingItem === item.id ? (
+                          <div className="flex items-center gap-2 mt-1.5">
+                            <input type="number" min="1" value={editQty} autoFocus
+                              onChange={(e) => setEditQty(e.target.value)}
+                              onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(item); if (e.key === 'Escape') setEditingItem(null) }}
+                              className="inp w-20 py-1 text-[13px]" />
+                            <span className="text-[11px]" style={{ color: 'var(--text-muted)' }}>g</span>
+                            <button onClick={() => saveEdit(item)} disabled={busyItem === item.id}
+                              className="text-[11px] px-2 py-1 rounded-md"
+                              style={{ background: 'var(--accent-bg)', border: '1px solid var(--accent-border)', color: 'var(--accent)' }}>
+                              {busyItem === item.id ? '…' : 'Salva'}
+                            </button>
+                            <button onClick={() => setEditingItem(null)}
+                              className="text-[11px] px-1.5 py-1" style={{ color: 'var(--text-muted)' }}>
+                              Annulla
+                            </button>
+                          </div>
+                        ) : (
+                          <p className="text-[11px] font-mono mt-0.5" style={{ color: 'var(--text-muted)' }}>
+                            {item.quantity_g}g · P {item.protein_g}g · C {item.carbs_g}g · G {item.fat_g}g
+                          </p>
+                        )}
                       </div>
-                      <span className="font-mono text-sm shrink-0" style={{ color: 'var(--macro-kcal)' }}>
-                        {Math.round(item.kcal)}<span className="text-[10px] ml-0.5" style={{ color: 'var(--text-dim)' }}>kcal</span>
-                      </span>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <span className="font-mono text-sm" style={{ color: 'var(--macro-kcal)' }}>
+                          {Math.round(item.kcal)}<span className="text-[10px] ml-0.5" style={{ color: 'var(--text-dim)' }}>kcal</span>
+                        </span>
+                        {editingItem !== item.id && (
+                          <>
+                            <button onClick={() => startEdit(item)} title="Modifica quantità"
+                              className="w-6 h-6 flex items-center justify-center rounded-md text-[11px] transition-colors"
+                              style={{ color: 'var(--text-muted)' }}
+                              onMouseEnter={(e) => { const el = e.currentTarget as HTMLElement; el.style.color = 'var(--accent)'; el.style.background = 'var(--surface-soft)' }}
+                              onMouseLeave={(e) => { const el = e.currentTarget as HTMLElement; el.style.color = 'var(--text-muted)'; el.style.background = 'transparent' }}>
+                              ✏️
+                            </button>
+                            <button onClick={() => deleteItem(item)} disabled={busyItem === item.id} title="Elimina alimento"
+                              className="w-6 h-6 flex items-center justify-center rounded-md text-[11px] transition-colors"
+                              style={{ color: 'var(--text-muted)' }}
+                              onMouseEnter={(e) => { const el = e.currentTarget as HTMLElement; el.style.color = 'var(--danger)'; el.style.background = 'var(--danger-bg)' }}
+                              onMouseLeave={(e) => { const el = e.currentTarget as HTMLElement; el.style.color = 'var(--text-muted)'; el.style.background = 'transparent' }}>
+                              {busyItem === item.id ? '…' : '✕'}
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>

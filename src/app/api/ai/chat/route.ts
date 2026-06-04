@@ -13,6 +13,8 @@ type WorkoutSetLite = Pick<WorkoutSet, 'workout_id' | 'exercise_name' | 'set_num
 type WhoopLite = Pick<WhoopDaily, 'cycle_date' | 'recovery_score' | 'hrv_rmssd_ms' | 'resting_hr_bpm' | 'sleep_performance' | 'sleep_duration_min' | 'sleep_disturbances' | 'day_strain' | 'energy_burnt_kcal'>
 type MealItemLite = { meal_id: string; food_name: string; quantity_g: number; kcal: number; protein_g: number; carbs_g: number; fat_g: number; fiber_g: number | null }
 type MealLite = { id: string; logged_date: string; meal_name: string; meal_order: number; notes: string | null }
+type TaskDefLite = { id: string; title: string; sort_order: number }
+type TaskLogLite = { def_id: string | null; logged_date: string; title: string; done: boolean; skipped: boolean }
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
 
@@ -73,6 +75,8 @@ export async function POST(request: Request) {
     workoutRes,
     mealRes,
     whoopRes,
+    taskDefRes,
+    taskLogRes,
   ] = await Promise.all([
     supabase.from('user_profile')
       .select('height_cm, birth_date, sex, goal_phase, tdee_kcal, protein_g, carbs_g, fat_g, wake_time, workout_start, workout_end')
@@ -92,12 +96,18 @@ export async function POST(request: Request) {
     supabase.from('whoop_daily')
       .select('cycle_date, recovery_score, hrv_rmssd_ms, resting_hr_bpm, sleep_performance, sleep_duration_min, sleep_disturbances, day_strain, energy_burnt_kcal')
       .eq('user_id', user.id).gte('cycle_date', ago14).order('cycle_date', { ascending: false }),
+    supabase.from('task_defs')
+      .select('id, title, sort_order')
+      .eq('user_id', user.id).eq('active', true).order('sort_order', { ascending: true }),
+    supabase.from('task_log')
+      .select('def_id, logged_date, title, done, skipped')
+      .eq('user_id', user.id).gte('logged_date', ago7).order('logged_date', { ascending: false }),
   ])
 
   // Surface query errors instead of silently turning them into empty context.
   // A missing column (PostgREST 42703) would otherwise make the coach "blind" to
   // real data with no trace — see supabase/migrations/0001_add_missing_columns.sql.
-  for (const [label, res] of Object.entries({ profileRes, phaseRes, weightRes, workoutRes, mealRes, whoopRes })) {
+  for (const [label, res] of Object.entries({ profileRes, phaseRes, weightRes, workoutRes, mealRes, whoopRes, taskDefRes, taskLogRes })) {
     if (res.error) console.error(`[ai/chat] ${label} query failed:`, res.error.message)
   }
 
@@ -107,6 +117,8 @@ export async function POST(request: Request) {
   const workouts = (workoutRes.data ?? []) as WorkoutLite[]
   const meals = (mealRes.data ?? []) as MealLite[]
   const whoop = (whoopRes.data ?? []) as WhoopLite[]
+  const taskDefs = (taskDefRes.data ?? []) as TaskDefLite[]
+  const taskLogs = (taskLogRes.data ?? []) as TaskLogLite[]
 
   // Fetch sets for last 14d workouts
   const workoutIds = workouts.map(w => w.id)
@@ -172,6 +184,37 @@ export async function POST(request: Request) {
     acc[key] = (acc[key] ?? 0) + 1
     return acc
   }, {})
+
+  // --- DAILY TASKS ---
+  // Today's checklist = active recurring defs (state from today's log) + one-off tasks.
+  // A task can be done, missed, or skipped (a planned REST day — excluded from the count).
+  const todayLogs = taskLogs.filter(l => l.logged_date === today)
+  const stateByDefToday = new Map<string, { done: boolean; skipped: boolean }>()
+  const oneOffToday: TaskLogLite[] = []
+  for (const l of todayLogs) {
+    if (l.def_id) stateByDefToday.set(l.def_id, { done: l.done, skipped: l.skipped })
+    else oneOffToday.push(l)
+  }
+  const todayTaskItems = [
+    ...taskDefs.map(d => ({ title: d.title, ...(stateByDefToday.get(d.id) ?? { done: false, skipped: false }), recurring: true })),
+    ...oneOffToday.map(l => ({ title: l.title, done: l.done, skipped: l.skipped, recurring: false })),
+  ]
+  const todayActive = todayTaskItems.filter(t => !t.skipped)
+  const todayTasksDone = todayActive.filter(t => t.done).length
+  // 7-day adherence per recurring task: done days out of days it was actually scheduled (rest days excluded).
+  const taskAdherence = taskDefs.map(d => {
+    const logs = taskLogs.filter(l => l.def_id === d.id)
+    const restDays = logs.filter(l => l.skipped).length
+    const doneDays = logs.filter(l => l.done).length
+    return { title: d.title, doneDays, scheduledDays: Math.max(0, 7 - restDays), restDays }
+  })
+
+  const taskLines = todayTaskItems.length === 0
+    ? '- Nessuna attività registrata oggi'
+    : todayTaskItems.map(t => `- ${t.skipped ? '💤 (riposo)' : t.done ? '✓' : '✗'} ${t.title}${t.recurring ? '' : ' (solo oggi)'}`).join('\n')
+  const adherenceLine = taskAdherence.length === 0
+    ? ''
+    : `\nAderenza attività ricorrenti (ultimi 7gg, riposi esclusi): ${taskAdherence.map(a => `${a.title} ${a.doneDays}/${a.scheduledDays}${a.restDays ? ` (${a.restDays} riposi)` : ''}`).join(' · ')}`
 
   // --- BUILD CONTEXT ---
   const phaseLatest = phases[0]
@@ -275,6 +318,9 @@ Medie 7gg: Recovery ${avgRecovery != null ? Math.round(avgRecovery) + '%' : 'N/D
 Oggi: ${todayWhoop ? `Recovery ${todayWhoop.recovery_score ?? 'N/D'}% | HRV ${todayWhoop.hrv_rmssd_ms ?? 'N/D'}ms | Sonno ${todayWhoop.sleep_duration_min != null ? round(todayWhoop.sleep_duration_min / 60, 1) + 'h' : 'N/D'} | Strain ${todayWhoop.day_strain ?? 'N/D'} | Energia bruciata ${todayWhoop.energy_burnt_kcal ?? 'N/D'} kcal` : 'nessun dato'}
 Storico giornaliero:
 ${whoopLines}
+
+ATTIVITÀ GIORNALIERE (oggi ${today}: ${todayTasksDone}/${todayActive.length} completate, ${todayTaskItems.length - todayActive.length} in riposo):
+${taskLines}${adherenceLine}
 
 --- FINE CONTESTO ---`
 

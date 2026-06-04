@@ -6,8 +6,10 @@ import { PhaseBadge } from '@/components/dashboard/PhaseBadge'
 import { AISummaryCard } from '@/components/dashboard/AISummaryCard'
 import { PhaseDetectTrigger } from '@/components/dashboard/PhaseDetectTrigger'
 import { WhoopSyncButton } from '@/components/dashboard/WhoopSyncButton'
+import { TaskRing } from '@/components/dashboard/TaskRing'
 import Link from 'next/link'
-import type { WhoopDaily, UserProfile, PhaseHistory, MealItem } from '@/lib/database.types'
+import type { WhoopDaily, UserProfile, PhaseHistory, MealItem, TaskDef, TaskLog } from '@/lib/database.types'
+import { mergeDayTasks, taskCounts } from '@/lib/tasks'
 import { localDate, daysAgo } from '@/lib/date'
 
 export const dynamic = 'force-dynamic'
@@ -27,7 +29,7 @@ export default async function DashboardPage() {
   const fourteenDaysAgo = daysAgo(14)
 
   const yesterday = daysAgo(1)
-  const [whoopRes, weightRes, profileRes, phaseRes, mealsRes] = await Promise.all([
+  const [whoopRes, weightRes, profileRes, phaseRes, mealsRes, taskDefsRes, taskLogRes] = await Promise.all([
     supabase.from('whoop_daily').select('*').eq('user_id', user.id)
       .in('cycle_date', [today, yesterday])
       .order('cycle_date', { ascending: false })
@@ -37,6 +39,8 @@ export default async function DashboardPage() {
     supabase.from('user_profile').select('*').eq('user_id', user.id).maybeSingle(),
     supabase.from('phase_history').select('*').eq('user_id', user.id).order('detected_at', { ascending: false }).limit(1).maybeSingle(),
     supabase.from('meals').select('id').eq('user_id', user.id).eq('logged_date', today),
+    supabase.from('task_defs').select('*').eq('user_id', user.id).eq('active', true).order('sort_order', { ascending: true }),
+    supabase.from('task_log').select('*').eq('user_id', user.id).eq('logged_date', today),
   ])
 
   const whoop = whoopRes.data as WhoopDaily | null
@@ -44,6 +48,8 @@ export default async function DashboardPage() {
   const profile = profileRes.data as UserProfile | null
   const phase = phaseRes.data as PhaseHistory | null
   const meals = (mealsRes.data ?? []) as { id: string }[]
+  const dayTasks = mergeDayTasks((taskDefsRes.data ?? []) as TaskDef[], (taskLogRes.data ?? []) as TaskLog[], today)
+  const { done: tasksDone, active: tasksActive } = taskCounts(dayTasks)
 
   let macros = { kcal: 0, protein_g: 0, carbs_g: 0, fat_g: 0 }
   if (meals.length > 0) {
@@ -109,6 +115,29 @@ export default async function DashboardPage() {
           }}
         />
       </div>
+
+      {/* Daily tasks */}
+      <Link href="/log/tasks" className="card p-5 flex items-center gap-5 transition-all">
+        <TaskRing done={tasksDone} total={tasksActive} size={92} stroke={9} />
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between">
+            <p className="section-label">Attività di Oggi</p>
+            <span className="text-[11px] font-semibold" style={{ color: 'var(--accent)' }}>Apri →</span>
+          </div>
+          <p className="font-display text-lg font-bold mt-1" style={{ color: 'var(--text)' }}>
+            {dayTasks.length === 0
+              ? 'Nessuna attività'
+              : tasksActive === 0
+                ? 'Giorno di riposo 💤'
+                : tasksDone === tasksActive ? 'Tutto fatto! 🎉' : `${tasksDone} / ${tasksActive} completate`}
+          </p>
+          <p className="text-[11px] mt-0.5 truncate" style={{ color: 'var(--text-muted)' }}>
+            {dayTasks.length === 0
+              ? 'Crea attività ricorrenti come "Palestra".'
+              : dayTasks.filter((t) => !t.done && !t.skipped).map((t) => t.title).join(', ') || 'Completate tutte ✓'}
+          </p>
+        </div>
+      </Link>
 
       {/* Caloric Balance */}
       {caloricBalance !== null && (() => {
